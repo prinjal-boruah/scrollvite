@@ -9,6 +9,16 @@ backend/*.log
 backend/media/
 backend/staticfiles/
 
+backend/scrollvite/__pycache__/
+backend/scrollvite/*.py[cod]
+backend/scrollvite/venv/
+backend/scrollvite/env/
+backend/scrollvite/.env
+backend/scrollvite/db.sqlite3
+backend/scrollvite/*.log
+backend/scrollvite/media/
+backend/scrollvite/staticfiles/
+
 # Next.js
 frontend/node_modules/
 frontend/.next/
