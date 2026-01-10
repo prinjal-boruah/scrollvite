@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* ===== Base styles ===== */
+html,
+body {
+  height: 100%;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  background-color: #f7f5f2;
+}
+
+/* ===== Brand helpers ===== */
+.font-serif {
+  font-family: var(--font-playfair), serif;
+}
