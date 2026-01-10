@@ -10,6 +10,6 @@ urlpatterns = [
     path("template-editor/<int:template_id>/", TemplateEditorView.as_view()),
     path("template-save/<int:template_id>/", TemplateSaveView.as_view()),
     path("templates/<slug:category_slug>/", TemplateByCategoryView.as_view()),
-    path("buy/<int:template_id>/", CreateOrderView.as_view()),
+    # path("buy/<int:template_id>/", CreateOrderView.as_view()),
     path("invite/<slug:slug>/", InviteView.as_view()),
 ]

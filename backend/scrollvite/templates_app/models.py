@@ -30,6 +30,7 @@ class Template(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES = (
+        ("PENDING", "Pending Payment"),
         ("ACTIVE", "Active"),
         ("EXPIRED", "Expired"),
     )
@@ -38,12 +39,15 @@ class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     template = models.ForeignKey(Template, on_delete=models.CASCADE)
 
+    # Payment info
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    
     # LEGACY — do not edit anymore
     schema_snapshot = models.JSONField(editable=False)
 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="ACTIVE")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="PENDING")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Order {self.id}"
-
+        return f"Order {self.id} - {self.status}"

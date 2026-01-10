@@ -59,7 +59,8 @@ class TemplateEditorView(APIView):
             "id": template.id,
             "title": template.title,
             "schema": template.schema,
-            "is_published": template.is_published
+            "is_published": template.is_published,
+            "price": str(template.price),  # Add this line
         })
 
 
