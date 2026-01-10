@@ -10,5 +10,5 @@ class CategorySerializer(serializers.ModelSerializer):
 class TemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Template
-        fields = ["id", "title", "price"]
+        fields = '__all__'
 

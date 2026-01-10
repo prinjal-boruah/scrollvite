@@ -2,40 +2,46 @@
 import { logout } from "@/lib/logout";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { fetchInviteInstance, saveInviteInstance } from "@/lib/api";
+import { fetchTemplate, saveTemplate } from "@/lib/api";
 
-export default function InviteEditorPage() {
+export default function AdminTemplateEditorPage() {
   const router = useRouter();
   const params = useParams();
-  const inviteId = params.inviteid as string;
+  const templateId = params.templateId as string;
 
   const [schema, setSchema] = useState<any>(null);
-  const [templateTitle, setTemplateTitle] = useState("");
-  const [publicSlug, setPublicSlug] = useState("");
+  const [title, setTitle] = useState("");
+  const [isPublished, setIsPublished] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("access");
-    if (!token) {
+    const userRaw = localStorage.getItem("user");
+
+    if (!token || !userRaw) {
       router.push("/login");
       return;
     }
 
-    // Fetch the invite instance (user-owned)
-    fetchInviteInstance(inviteId)
+    const user = JSON.parse(userRaw);
+    if (user.role !== "SUPER_ADMIN") {
+      router.push("/categories");
+      return;
+    }
+
+    fetchTemplate(templateId)
       .then((data) => {
-        console.log("API Response:", data);  
         setSchema(data.schema);
-        setTemplateTitle(data.template_title);
-        setPublicSlug(data.public_slug);  // ← Make sure this line exists
+        setTitle(data.title);
+        setIsPublished(data.is_published);
       })
       .catch(() => {
-        alert("Failed to load invite. You may not have access.");
+        alert("Failed to load template");
         router.push("/categories");
       });
-  }, [inviteId, router]);
+  }, [templateId, router]);
 
-  if (!schema) return <p className="p-6">Loading your invite...</p>;
+  if (!schema) return <p className="p-6">Loading template editor...</p>;
 
   const updateHero = (key: string, value: string) => {
     setSchema({
@@ -73,21 +79,13 @@ export default function InviteEditorPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveInviteInstance(inviteId, schema);
-      alert("Saved successfully!");
+      await saveTemplate(templateId, schema, isPublished);
+      alert("Template saved successfully!");
     } catch (error) {
-      alert("Failed to save");
+      alert("Failed to save template");
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleViewPublic = () => {
-    if (!publicSlug) {
-      alert("Public link not available yet");
-      return;
-    }
-    window.open(`/invite/${publicSlug}`, "_blank");
   };
 
   return (
@@ -101,39 +99,43 @@ export default function InviteEditorPage() {
         </button>
       </div>
 
-      <div className="fixed top-4 right-4 z-50">
-        <button
-          onClick={handleViewPublic}
-          className="text-sm bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
-        >
-          View Public Page
-        </button>
-      </div>
-
       {/* LEFT: EDITOR */}
       <div className="w-1/2 p-6 overflow-y-auto border-r">
-        <h1 className="text-xl font-bold mb-2">Edit Your Invite</h1>
-        <p className="text-sm text-gray-500 mb-6">Template: {templateTitle}</p>
+        <h1 className="text-xl font-bold mb-2">Admin: Edit Template</h1>
+        <p className="text-sm text-gray-500 mb-6">{title}</p>
+
+        <div className="mb-6 flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="published"
+            checked={isPublished}
+            onChange={(e) => setIsPublished(e.target.checked)}
+            className="w-4 h-4"
+          />
+          <label htmlFor="published" className="text-sm font-medium">
+            Published (visible to buyers)
+          </label>
+        </div>
 
         <h2 className="font-semibold mb-2">Hero Section</h2>
 
         <input
           className="border p-2 w-full mb-2"
-          placeholder="Bride Name"
+          placeholder="Bride Name (default)"
           value={schema.hero.bride_name}
           onChange={(e) => updateHero("bride_name", e.target.value)}
         />
 
         <input
           className="border p-2 w-full mb-2"
-          placeholder="Groom Name"
+          placeholder="Groom Name (default)"
           value={schema.hero.groom_name}
           onChange={(e) => updateHero("groom_name", e.target.value)}
         />
 
         <input
           className="border p-2 w-full mb-2"
-          placeholder="Subtitle"
+          placeholder="Subtitle (default)"
           value={schema.hero.subtitle}
           onChange={(e) => updateHero("subtitle", e.target.value)}
         />
@@ -145,7 +147,7 @@ export default function InviteEditorPage() {
           onChange={(e) => updateHero("wedding_date", e.target.value)}
         />
 
-        <h2 className="font-semibold mb-2">Venue</h2>
+        <h2 className="font-semibold mb-2">Venue (Default)</h2>
 
         <input
           className="border p-2 w-full mb-2"
@@ -161,7 +163,7 @@ export default function InviteEditorPage() {
           onChange={(e) => updateVenue("city", e.target.value)}
         />
 
-        <h2 className="font-semibold mb-4">Events</h2>
+        <h2 className="font-semibold mb-4">Events (Default)</h2>
 
         {schema.events.map((event: any, idx: number) => (
           <div key={idx} className="border p-4 mb-4 rounded">
@@ -191,7 +193,7 @@ export default function InviteEditorPage() {
           onClick={handleSave}
           disabled={saving}
         >
-          {saving ? "Saving..." : "Save Changes"}
+          {saving ? "Saving..." : "Save Template"}
         </button>
       </div>
 

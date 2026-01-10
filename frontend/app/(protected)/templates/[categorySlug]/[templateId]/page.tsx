@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { buyTemplate } from "@/lib/api";
 
 type User = {
   role?: string;
@@ -14,6 +15,7 @@ export default function TemplatePreviewPage() {
 
   const [template, setTemplate] = useState<any>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [buying, setBuying] = useState(false);
 
   useEffect(() => {
     // Load user (client only)
@@ -38,6 +40,45 @@ export default function TemplatePreviewPage() {
       });
   }, [templateId]);
 
+  const [buyMessage, setBuyMessage] = useState<string>("");
+
+  const handleBuy = async () => {
+    setBuying(true);
+    setBuyMessage("");
+    try {
+      const data = await buyTemplate(templateId);
+      
+      // Show message if user already owns it
+      if (data.message) {
+        setBuyMessage(data.message);
+      }
+      
+      // Redirect to editor
+      router.push(data.editor_url);
+    } catch (error) {
+      alert("Failed to purchase template");
+      setBuying(false);
+    }
+  };
+
+  // Update the button section:
+  {user?.role === "BUYER" && (
+    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center">
+      {buyMessage && (
+        <div className="mb-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-sm">
+          {buyMessage}
+        </div>
+      )}
+      <button
+        onClick={handleBuy}
+        disabled={buying}
+        className="bg-black text-white px-6 py-3 rounded-full shadow-lg disabled:bg-gray-400"
+      >
+        {buying ? "Processing..." : "Use this template"}
+      </button>
+    </div>
+  )}
+
   if (!template) {
     return (
       <div className="p-8 text-gray-500">
@@ -50,40 +91,27 @@ export default function TemplatePreviewPage() {
 
   return (
     <main className="bg-[#fafafa] text-gray-800">
-      {/* ACTIONS */}
+      {/* ADMIN ACTION: Edit Template Blueprint */}
       {user?.role === "SUPER_ADMIN" && (
         <div className="fixed top-20 right-8 z-50">
           <button
-            onClick={() => router.push(`/editor/${templateId}`)}
+            onClick={() => router.push(`/admin/templates/${templateId}`)}
             className="bg-black text-white px-4 py-2 rounded shadow"
           >
-            Edit Template
+            Edit Template (Admin)
           </button>
         </div>
       )}
 
+      {/* BUYER ACTION: Purchase & Create Instance */}
       {user?.role === "BUYER" && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
           <button
-            onClick={async () => {
-              const token = localStorage.getItem("access");
-
-              const res = await fetch(
-                `http://127.0.0.1:8000/api/buy/${templateId}/`,
-                {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
-              );
-
-              const data = await res.json();
-              router.push(data.invite_url);
-            }}
-            className="bg-black text-white px-6 py-3 rounded-full shadow-lg"
+            onClick={handleBuy}
+            disabled={buying}
+            className="bg-black text-white px-6 py-3 rounded-full shadow-lg disabled:bg-gray-400"
           >
-            Use this template
+            {buying ? "Processing..." : "Use this template"}
           </button>
         </div>
       )}

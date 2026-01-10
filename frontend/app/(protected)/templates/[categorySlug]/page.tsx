@@ -7,6 +7,11 @@ type Template = {
   id: number;
   title: string;
   price: number;
+  is_published: boolean;
+};
+
+type User = {
+  role?: string;  // ← Add this
 };
 
 export default function TemplatesPage() {
@@ -15,24 +20,30 @@ export default function TemplatesPage() {
   const categorySlug = params.categorySlug as string;
 
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("access");
+  const token = localStorage.getItem("access");
+  const userRaw = localStorage.getItem("user");
+  
+  if (userRaw) {
+    setUser(JSON.parse(userRaw));  // ← Add this
+  }
 
-    fetch(
-      `http://127.0.0.1:8000/api/templates/${categorySlug}/`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setTemplates(data);
-        setLoading(false);
-      });
+  fetch(
+    `http://127.0.0.1:8000/api/templates/${categorySlug}/`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      setTemplates(data);
+      setLoading(false);
+    });
   }, [categorySlug]);
 
   if (loading) {
@@ -52,36 +63,44 @@ export default function TemplatesPage() {
   }
 
   return (
-    <section className="max-w-7xl mx-auto px-8 py-12">
-      <h1 className="font-serif text-3xl mb-10 capitalize">
-        {categorySlug.replace("-", " ")} templates
-      </h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-        {templates.map((template) => (
-          <div
-            key={template.id}
-            onClick={() =>
-              router.push(
-                `/templates/${categorySlug}/${template.id}`
-              )
-            }
-            className="cursor-pointer bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition"
-          >
-            <div className="h-40 rounded-xl bg-gray-100 mb-4 flex items-center justify-center text-gray-400 text-sm">
-              Preview
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+      {templates.map((template) => (
+        <div
+          key={template.id}
+          onClick={() =>
+            router.push(
+              `/templates/${categorySlug}/${template.id}`
+            )
+          }
+          className="cursor-pointer bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition relative"
+        >
+          {/* Admin badge for unpublished templates */}
+          {user?.role === "SUPER_ADMIN" && !template.is_published && (
+            <div className="absolute top-4 right-4 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
+              DRAFT
             </div>
-
-            <h2 className="font-serif text-lg mb-1">
-              {template.title}
-            </h2>
-
-            <p className="text-sm text-gray-500">
-              ₹{template.price}
-            </p>
+          )}
+          
+          <div className="h-40 rounded-xl bg-gray-100 mb-4 flex items-center justify-center text-gray-400 text-sm">
+            Preview
           </div>
-        ))}
-      </div>
-    </section>
+
+          <h2 className="font-serif text-lg mb-1">
+            {template.title}
+          </h2>
+
+          <p className="text-sm text-gray-500">
+            ₹{template.price}
+          </p>
+
+          {/* Admin indicator */}
+          {user?.role === "SUPER_ADMIN" && !template.is_published && (
+            <p className="text-xs text-yellow-600 mt-2">
+              Not visible to buyers
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }

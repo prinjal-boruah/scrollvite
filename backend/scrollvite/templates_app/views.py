@@ -22,11 +22,20 @@ class TemplateListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, category_slug):
-        templates = Template.objects.filter(
-            category__slug=category_slug,
-            is_active=True,
-            is_published=True
-        )
+        # Admin sees all templates (published + unpublished)
+        # Buyers see only published templates
+        if request.user.role == "SUPER_ADMIN":
+            templates = Template.objects.filter(
+                category__slug=category_slug,
+                is_active=True
+            )
+        else:
+            templates = Template.objects.filter(
+                category__slug=category_slug,
+                is_active=True,
+                is_published=True
+            )
+        
         return Response(TemplateSerializer(templates, many=True).data)
 
 
@@ -86,13 +95,32 @@ class CreateOrderView(APIView):
     def post(self, request, template_id):
         template = get_object_or_404(Template, id=template_id)
 
-        # 1️⃣ Create order (clean, no schema)
+        # ✅ CHECK: Does user already have an active order for this template?
+        existing_order = Order.objects.filter(
+            user=request.user,
+            template=template,
+            status="ACTIVE"
+        ).first()
+
+        if existing_order:
+            # User already bought this - return existing invite
+            invite = InviteInstance.objects.get(order=existing_order)
+            
+            return Response({
+                "order_id": str(existing_order.id),
+                "invite_id": str(invite.id),
+                "invite_url": f"/invite/{invite.public_slug}",
+                "editor_url": f"/editor/{invite.id}",
+                "message": "You already own this template"
+            })
+
+        # ✅ NEW PURCHASE: Create order and invite
         order = Order.objects.create(
             user=request.user,
-            template=template
+            template=template,
+            schema_snapshot=copy.deepcopy(template.schema)
         )
 
-        # 2️⃣ Create invite instance (COPY schema)
         invite = InviteInstance.objects.create(
             order=order,
             template=template,
@@ -105,6 +133,7 @@ class CreateOrderView(APIView):
             "invite_id": str(invite.id),
             "invite_url": f"/invite/{invite.public_slug}",
             "editor_url": f"/editor/{invite.id}",
+            "message": "Template purchased successfully"
         })
 
     
