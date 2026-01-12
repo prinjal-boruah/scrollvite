@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { buyTemplate } from "@/lib/api";
+import { 
+  loadRazorpayScript, 
+  createPaymentOrder, 
+  openRazorpayCheckout, 
+  verifyPayment 
+} from "@/lib/payment";
 
 type User = {
   role?: string;
@@ -16,8 +21,14 @@ export default function TemplatePreviewPage() {
   const [template, setTemplate] = useState<any>(null);
   const [user, setUser] = useState<User | null>(null);
   const [buying, setBuying] = useState(false);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   useEffect(() => {
+    // Load Razorpay script
+    loadRazorpayScript().then((loaded) => {
+      setRazorpayLoaded(loaded);
+    });
+
     // Load user (client only)
     const userRaw = localStorage.getItem("user");
     if (userRaw) {
@@ -37,47 +48,64 @@ export default function TemplatePreviewPage() {
       .then((res) => res.json())
       .then((data) => {
         setTemplate(data);
+      })
+      .catch((err) => {
+        console.error("Failed to load template:", err);
       });
   }, [templateId]);
 
-  const [buyMessage, setBuyMessage] = useState<string>("");
-
   const handleBuy = async () => {
+    if (!razorpayLoaded) {
+      alert("Payment gateway not loaded. Please refresh and try again.");
+      return;
+    }
+
     setBuying(true);
-    setBuyMessage("");
+
     try {
-      const data = await buyTemplate(templateId);
-      
-      // Show message if user already owns it
-      if (data.message) {
-        setBuyMessage(data.message);
+      // Step 1: Create payment order
+      const orderData = await createPaymentOrder(templateId);
+
+      // Check if already purchased
+      if (orderData.already_purchased) {
+        alert(orderData.message);
+        router.push(orderData.editor_url);
+        return;
       }
-      
-      // Redirect to editor
-      router.push(data.editor_url);
+
+      // Step 2: Open Razorpay checkout
+      openRazorpayCheckout(
+        orderData,
+        async (response) => {
+          // Step 3: Verify payment
+          try {
+            const verificationResult = await verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            // Success! Redirect to editor
+            alert(verificationResult.message);
+            router.push(verificationResult.editor_url);
+          } catch (error) {
+            alert("Payment verification failed. Please contact support.");
+            setBuying(false);
+          }
+        },
+        (error) => {
+          // Payment failed or cancelled
+          console.error("Payment failed:", error);
+          alert("Payment was cancelled or failed. Please try again.");
+          setBuying(false);
+        }
+      );
     } catch (error) {
-      alert("Failed to purchase template");
+      console.error("Payment initiation failed:", error);
+      alert("Failed to initiate payment. Please try again.");
       setBuying(false);
     }
   };
-
-  // Update the button section:
-  {user?.role === "BUYER" && (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center">
-      {buyMessage && (
-        <div className="mb-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-sm">
-          {buyMessage}
-        </div>
-      )}
-      <button
-        onClick={handleBuy}
-        disabled={buying}
-        className="bg-black text-white px-6 py-3 rounded-full shadow-lg disabled:bg-gray-400"
-      >
-        {buying ? "Processing..." : "Use this template"}
-      </button>
-    </div>
-  )}
 
   if (!template) {
     return (
@@ -108,10 +136,14 @@ export default function TemplatePreviewPage() {
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
           <button
             onClick={handleBuy}
-            disabled={buying}
-            className="bg-black text-white px-6 py-3 rounded-full shadow-lg disabled:bg-gray-400"
+            disabled={buying || !razorpayLoaded}
+            className="bg-black text-white px-6 py-3 rounded-full shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {buying ? "Processing..." : "Use this template"}
+            {buying 
+              ? "Processing..." 
+              : !razorpayLoaded 
+              ? "Loading..." 
+              : `Buy ₹${template.price || "..."}`}
           </button>
         </div>
       )}

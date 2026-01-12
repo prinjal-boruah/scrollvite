@@ -92,15 +92,6 @@ export default function InviteEditorPage() {
 
   return (
     <div className="h-screen flex">
-      <div className="fixed top-4 left-4 z-50">
-        <button
-          onClick={() => logout(router)}
-          className="text-sm text-gray-600 underline"
-        >
-          Logout
-        </button>
-      </div>
-
       <div className="fixed top-4 right-4 z-50">
         <button
           onClick={handleViewPublic}

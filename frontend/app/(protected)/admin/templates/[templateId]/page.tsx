@@ -90,15 +90,6 @@ export default function AdminTemplateEditorPage() {
 
   return (
     <div className="h-screen flex">
-      <div className="fixed top-4 left-4 z-50">
-        <button
-          onClick={() => logout(router)}
-          className="text-sm text-gray-600 underline"
-        >
-          Logout
-        </button>
-      </div>
-
       {/* LEFT: EDITOR */}
       <div className="w-1/2 p-6 overflow-y-auto border-r">
         <h1 className="text-xl font-bold mb-2">Admin: Edit Template</h1>
