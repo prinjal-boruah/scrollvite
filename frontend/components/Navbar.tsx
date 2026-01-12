@@ -25,6 +25,10 @@ export default function Navbar() {
     router.push("/login");
   };
 
+  const my_templates = () => {
+    router.push("/my-templates");
+  };
+
   return (
     <header className="h-16 flex items-center justify-between px-8 border-b bg-white">
       {/* LOGO */}
@@ -37,6 +41,13 @@ export default function Navbar() {
 
       {/* RIGHT SIDE */}
       <div className="flex items-center gap-4">
+        <button
+          onClick={my_templates}
+          className="text-sm text-gray-600 hover:underline"
+        >
+          My Templates
+        </button>
+
         {user?.role && (
           <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600">
             {user.role}

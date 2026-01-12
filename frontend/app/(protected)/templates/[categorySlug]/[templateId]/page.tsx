@@ -1,214 +1,322 @@
 "use client";
-
+import { logout } from "@/lib/logout";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { 
-  loadRazorpayScript, 
-  createPaymentOrder, 
-  openRazorpayCheckout, 
-  verifyPayment 
-} from "@/lib/payment";
+import { useRouter, useParams } from "next/navigation";
+import { fetchInviteInstance, saveInviteInstance } from "@/lib/api";
+import TemplateRenderer from "@/components/TemplateRenderer";
 
-type User = {
-  role?: string;
-};
-
-export default function TemplatePreviewPage() {
+export default function InviteEditorPage() {
   const router = useRouter();
   const params = useParams();
-  const templateId = params.templateId as string;
+  const inviteId = params.inviteid as string;
 
-  const [template, setTemplate] = useState<any>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [buying, setBuying] = useState(false);
-  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [schema, setSchema] = useState<any>(null);
+  const [templateTitle, setTemplateTitle] = useState("");
+  const [templateComponent, setTemplateComponent] = useState("RoyalWeddingTemplate");
+  const [publicSlug, setPublicSlug] = useState("");
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [expired, setExpired] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // Load Razorpay script
-    loadRazorpayScript().then((loaded) => {
-      setRazorpayLoaded(loaded);
-    });
-
-    // Load user (client only)
-    const userRaw = localStorage.getItem("user");
-    if (userRaw) {
-      setUser(JSON.parse(userRaw));
-    }
-
     const token = localStorage.getItem("access");
-
-    fetch(
-      `http://127.0.0.1:8000/api/template-editor/${templateId}/`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setTemplate(data);
-      })
-      .catch((err) => {
-        console.error("Failed to load template:", err);
-      });
-  }, [templateId]);
-
-  const handleBuy = async () => {
-    if (!razorpayLoaded) {
-      alert("Payment gateway not loaded. Please refresh and try again.");
+    if (!token) {
+      router.push("/login");
       return;
     }
 
-    setBuying(true);
-
-    try {
-      // Step 1: Create payment order
-      const orderData = await createPaymentOrder(templateId);
-
-      // Check if already purchased
-      if (orderData.already_purchased) {
-        alert(orderData.message);
-        router.push(orderData.editor_url);
-        return;
-      }
-
-      // Step 2: Open Razorpay checkout
-      openRazorpayCheckout(
-        orderData,
-        async (response) => {
-          // Step 3: Verify payment
-          try {
-            const verificationResult = await verifyPayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-
-            // Success! Redirect to editor
-            alert(verificationResult.message);
-            router.push(verificationResult.editor_url);
-          } catch (error) {
-            alert("Payment verification failed. Please contact support.");
-            setBuying(false);
-          }
-        },
-        (error) => {
-          // Payment failed or cancelled
-          console.error("Payment failed:", error);
-          alert("Payment was cancelled or failed. Please try again.");
-          setBuying(false);
+    // Fetch the invite instance (user-owned)
+    fetchInviteInstance(inviteId)
+      .then((data) => {
+        if (data.expired) {
+          setExpired(true);
+          setExpiresAt(data.expires_at);
+          return;
         }
-      );
-    } catch (error) {
-      console.error("Payment initiation failed:", error);
-      alert("Failed to initiate payment. Please try again.");
-      setBuying(false);
-    }
-  };
+        setSchema(data.schema);
+        setTemplateTitle(data.template_title);
+        setPublicSlug(data.public_slug);
+        setTemplateComponent(data.template_component || "RoyalWeddingTemplate");
+        setExpiresAt(data.expires_at);
+      })
+      .catch(() => {
+        alert("Failed to load invite. You may not have access.");
+        router.push("/categories");
+      });
+  }, [inviteId, router]);
 
-  if (!template) {
+  if (expired) {
     return (
-      <div className="p-8 text-gray-500">
-        Loading template…
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md px-6">
+          <div className="text-6xl mb-6">⏰</div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">
+            Invite Expired
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Your invite expired on {expiresAt ? new Date(expiresAt).toLocaleDateString() : 'N/A'}.
+            Purchase a new template to create another invite.
+          </p>
+          <button
+            onClick={() => router.push("/categories")}
+            className="bg-black text-white px-6 py-3 rounded-full"
+          >
+            Browse Templates
+          </button>
+        </div>
       </div>
     );
   }
 
-  const { hero, venue, events } = template.schema;
+  if (!schema) return <p className="p-6">Loading your invite...</p>;
+
+  const updateHero = (key: string, value: string) => {
+    setSchema({
+      ...schema,
+      hero: {
+        ...schema.hero,
+        [key]: value,
+      },
+    });
+  };
+
+  const updateVenue = (key: string, value: string) => {
+    setSchema({
+      ...schema,
+      venue: {
+        ...schema.venue,
+        [key]: value,
+      },
+    });
+  };
+
+  const updateEvent = (index: number, key: string, value: string) => {
+    const newEvents = [...schema.events];
+    newEvents[index] = {
+      ...newEvents[index],
+      [key]: value,
+    };
+
+    setSchema({
+      ...schema,
+      events: newEvents,
+    });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await saveInviteInstance(inviteId, schema);
+      alert("Saved successfully!");
+    } catch (error) {
+      alert("Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleViewPublic = () => {
+    window.open(`/invite/${publicSlug}`, "_blank");
+  };
 
   return (
-    <main className="bg-[#fafafa] text-gray-800">
-      {/* ADMIN ACTION: Edit Template Blueprint */}
-      {user?.role === "SUPER_ADMIN" && (
-        <div className="fixed top-20 right-8 z-50">
-          <button
-            onClick={() => router.push(`/admin/templates/${templateId}`)}
-            className="bg-black text-white px-4 py-2 rounded shadow"
-          >
-            Edit Template (Admin)
-          </button>
+    <div className="h-screen flex flex-col">
+      {/* Mobile Warning Banner */}
+      <div className="md:hidden bg-yellow-50 border-b border-yellow-200 p-4 text-center">
+        <p className="text-sm text-yellow-800">
+          📱 For best editing experience, please use a desktop or laptop
+        </p>
+      </div>
+
+      {/* Floating View Public Button */}
+      <div className="fixed top-20 right-8 z-50">
+        <button
+          onClick={handleViewPublic}
+          className="bg-white border-2 border-gray-300 text-gray-800 px-4 py-2 rounded shadow-lg hover:shadow-xl hover:border-gray-400 transition-all"
+        >
+          👁️ View Public Page
+        </button>
+      </div>
+
+      {/* Main Editor */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Header */}
+        <div className="mb-6 pb-6 border-b">
+          <h1 className="text-2xl font-bold mb-2">Edit Your Invite</h1>
+          <p className="text-sm text-gray-600">Template: <span className="font-medium">{templateTitle}</span></p>
         </div>
-      )}
 
-      {/* BUYER ACTION: Purchase & Create Instance */}
-      {user?.role === "BUYER" && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-          <button
-            onClick={handleBuy}
-            disabled={buying || !razorpayLoaded}
-            className="bg-black text-white px-6 py-3 rounded-full shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            {buying 
-              ? "Processing..." 
-              : !razorpayLoaded 
-              ? "Loading..." 
-              : `Buy ₹${template.price || "..."}`}
-          </button>
-        </div>
-      )}
-
-      {/* HERO */}
-      <section className="min-h-screen flex flex-col items-center justify-center text-center px-6">
-        <p className="tracking-widest text-sm uppercase mb-4">
-          Wedding Invitation
-        </p>
-
-        <h1 className="text-4xl md:text-5xl font-serif mb-2">
-          {hero.bride_name}
-        </h1>
-
-        <p className="text-xl my-2">&</p>
-
-        <h1 className="text-4xl md:text-5xl font-serif mb-6">
-          {hero.groom_name}
-        </h1>
-
-        <p className="italic text-gray-600 mb-4">
-          {hero.subtitle}
-        </p>
-
-        <p className="font-medium tracking-wide">
-          {hero.wedding_date}
-        </p>
-      </section>
-
-      {/* VENUE */}
-      <section className="py-20 px-6 text-center bg-white">
-        <h2 className="text-2xl font-serif mb-4">
-          Venue
-        </h2>
-        <p className="text-lg">{venue.name}</p>
-        <p className="text-gray-600 mt-1">
-          {venue.city}
-        </p>
-      </section>
-
-      {/* EVENTS */}
-      <section className="py-20 px-6 bg-[#fafafa]">
-        <h2 className="text-2xl font-serif text-center mb-10">
-          Wedding Events
-        </h2>
-
-        <div className="max-w-md mx-auto space-y-6">
-          {events.map((event: any, idx: number) => (
-            <div
-              key={idx}
-              className="border rounded-lg p-6 text-center bg-white"
-            >
-              <h3 className="text-lg font-medium mb-2">
-                {event.name}
-              </h3>
-              <p className="text-gray-600">
-                {event.date}
-              </p>
-              <p className="text-gray-600">
-                {event.time}
-              </p>
+        {/* Expiry Warning */}
+        {expiresAt && (
+          <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r">
+            <div className="flex items-start">
+              <span className="text-yellow-600 text-xl mr-3">⚠️</span>
+              <div>
+                <p className="text-sm font-semibold text-yellow-800">
+                  Expiry Notice
+                </p>
+                <p className="text-sm text-yellow-700 mt-1">
+                  Expires on <strong>{new Date(expiresAt).toLocaleDateString('en-US', { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                  })}</strong> (1 month after wedding)
+                </p>
+              </div>
             </div>
-          ))}
+          </div>
+        )}
+
+        {/* Hero Section */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+            <span className="mr-2">💑</span> Couple Details
+          </h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Bride's Name *
+              </label>
+              <input
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-black focus:border-transparent"
+                placeholder="Enter bride's name"
+                value={schema.hero.bride_name}
+                onChange={(e) => updateHero("bride_name", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Groom's Name *
+              </label>
+              <input
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-black focus:border-transparent"
+                placeholder="Enter groom's name"
+                value={schema.hero.groom_name}
+                onChange={(e) => updateHero("groom_name", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tagline
+              </label>
+              <input
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-black focus:border-transparent"
+                placeholder="Two hearts, one soul"
+                value={schema.hero.subtitle}
+                onChange={(e) => updateHero("subtitle", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Wedding Date *
+              </label>
+              <input
+                type="date"
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-black focus:border-transparent"
+                value={schema.hero.wedding_date}
+                onChange={(e) => updateHero("wedding_date", e.target.value)}
+              />
+            </div>
+          </div>
         </div>
-      </section>
-    </main>
+
+        {/* Venue Section */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+            <span className="mr-2">📍</span> Venue Details
+          </h2>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Venue Name
+              </label>
+              <input
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-black focus:border-transparent"
+                placeholder="The Grand Palace"
+                value={schema.venue.name}
+                onChange={(e) => updateVenue("name", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                City
+              </label>
+              <input
+                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-black focus:border-transparent"
+                placeholder="Jaipur, Rajasthan"
+                value={schema.venue.city}
+                onChange={(e) => updateVenue("city", e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Events Section */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+            <span className="mr-2">🎉</span> Wedding Events
+          </h2>
+
+          <div className="space-y-4">
+            {schema.events.map((event: any, idx: number) => (
+              <div key={idx} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <p className="text-sm font-medium text-gray-500 mb-3">Event {idx + 1}</p>
+                
+                <div className="space-y-3">
+                  <input
+                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Event Name"
+                    value={event.name}
+                    onChange={(e) => updateEvent(idx, "name", e.target.value)}
+                  />
+                  <input
+                    type="date"
+                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-black focus:border-transparent"
+                    value={event.date}
+                    onChange={(e) => updateEvent(idx, "date", e.target.value)}
+                  />
+                  <input
+                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Time (e.g., 4:00 PM)"
+                    value={event.time}
+                    onChange={(e) => updateEvent(idx, "time", e.target.value)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Save Button */}
+        <div className="sticky bottom-0 pt-6 bg-white border-t">
+          <button
+            className="w-full bg-black text-white py-4 rounded-lg font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-gray-800 transition-colors flex items-center justify-center"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <>
+                <span className="mr-2">⏳</span> Saving...
+              </>
+            ) : (
+              <>
+                <span className="mr-2">💾</span> Save Changes
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* RIGHT: LIVE PREVIEW */}
+      <div className="hidden md:block md:w-1/2 overflow-y-auto bg-gray-50">
+        <TemplateRenderer templateComponent={templateComponent} schema={schema} />
+      </div>
+    </div>
   );
 }

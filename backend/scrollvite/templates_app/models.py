@@ -18,6 +18,13 @@ class Template(models.Model):
 
     schema = models.JSONField()
     price = models.DecimalField(max_digits=8, decimal_places=2)
+    
+    # Template component identifier
+    template_component = models.CharField(
+        max_length=100,
+        default="RoyalWeddingTemplate",
+        help_text="React component name for this template design"
+    )
 
     is_published = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

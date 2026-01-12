@@ -52,6 +52,14 @@ class InviteInstance(models.Model):
     public_slug = models.SlugField(unique=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Invite {self.public_slug}"
+    
+    def is_expired(self):
+        """Check if invite has expired"""
+        if not self.expires_at:
+            return False
+        from django.utils import timezone
+        return timezone.now() > self.expires_at

@@ -3,6 +3,7 @@ import { logout } from "@/lib/logout";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { fetchInviteInstance, saveInviteInstance } from "@/lib/api";
+import TemplateRenderer from "@/components/TemplateRenderer";
 
 export default function InviteEditorPage() {
   const router = useRouter();
@@ -11,7 +12,10 @@ export default function InviteEditorPage() {
 
   const [schema, setSchema] = useState<any>(null);
   const [templateTitle, setTemplateTitle] = useState("");
+  const [templateComponent, setTemplateComponent] = useState("RoyalWeddingTemplate");
   const [publicSlug, setPublicSlug] = useState("");
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [expired, setExpired] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -24,16 +28,45 @@ export default function InviteEditorPage() {
     // Fetch the invite instance (user-owned)
     fetchInviteInstance(inviteId)
       .then((data) => {
-        console.log("API Response:", data);  
+        if (data.expired) {
+          setExpired(true);
+          setExpiresAt(data.expires_at);
+          return;
+        }
         setSchema(data.schema);
         setTemplateTitle(data.template_title);
-        setPublicSlug(data.public_slug);  // ← Make sure this line exists
+        setPublicSlug(data.public_slug);
+        setTemplateComponent(data.template_component || "RoyalWeddingTemplate");
+        setExpiresAt(data.expires_at);
       })
       .catch(() => {
         alert("Failed to load invite. You may not have access.");
         router.push("/categories");
       });
   }, [inviteId, router]);
+
+  if (expired) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md px-6">
+          <div className="text-6xl mb-6">⏰</div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">
+            Invite Expired
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Your invite expired on {expiresAt ? new Date(expiresAt).toLocaleDateString() : 'N/A'}.
+            Purchase a new template to create another invite.
+          </p>
+          <button
+            onClick={() => router.push("/categories")}
+            className="bg-black text-white px-6 py-3 rounded-full"
+          >
+            Browse Templates
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!schema) return <p className="p-6">Loading your invite...</p>;
 
@@ -83,21 +116,18 @@ export default function InviteEditorPage() {
   };
 
   const handleViewPublic = () => {
-    if (!publicSlug) {
-      alert("Public link not available yet");
-      return;
-    }
     window.open(`/invite/${publicSlug}`, "_blank");
   };
 
   return (
     <div className="h-screen flex">
-      <div className="fixed top-4 right-4 z-50">
+      {/* Floating View Public Button */}
+      <div className="fixed top-20 right-8 z-50">
         <button
           onClick={handleViewPublic}
-          className="text-sm bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+          className="bg-white border-2 border-gray-300 text-gray-800 px-4 py-2 rounded shadow-lg hover:shadow-xl hover:border-gray-400 transition-all"
         >
-          View Public Page
+          👁️ View Public Page
         </button>
       </div>
 
@@ -105,6 +135,27 @@ export default function InviteEditorPage() {
       <div className="w-1/2 p-6 overflow-y-auto border-r">
         <h1 className="text-xl font-bold mb-2">Edit Your Invite</h1>
         <p className="text-sm text-gray-500 mb-6">Template: {templateTitle}</p>
+
+        {/* Expiry Warning */}
+        {expiresAt && (
+          <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+            <div className="flex items-start">
+              <span className="text-yellow-600 text-xl mr-3">⚠️</span>
+              <div>
+                <p className="text-sm font-medium text-yellow-800">
+                  Expiry Notice
+                </p>
+                <p className="text-sm text-yellow-700 mt-1">
+                  This invite expires on <strong>{new Date(expiresAt).toLocaleDateString('en-US', { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                  })}</strong> (1 month after your wedding)
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <h2 className="font-semibold mb-2">Hero Section</h2>
 
@@ -187,32 +238,8 @@ export default function InviteEditorPage() {
       </div>
 
       {/* RIGHT: LIVE PREVIEW */}
-      <div className="w-1/2 overflow-y-auto bg-[#fafafa] px-6 py-12 text-center">
-        <section className="mb-16">
-          <h1 className="text-4xl font-serif">{schema.hero.bride_name}</h1>
-          <p className="my-2">&</p>
-          <h1 className="text-4xl font-serif">{schema.hero.groom_name}</h1>
-          <p className="italic mt-4 text-gray-600">{schema.hero.subtitle}</p>
-          <p className="mt-2 font-medium">{schema.hero.wedding_date}</p>
-        </section>
-
-        <section className="mb-16">
-          <h2 className="text-2xl font-serif mb-4">Venue</h2>
-          <p>{schema.venue.name}</p>
-          <p className="text-gray-600">{schema.venue.city}</p>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-serif mb-6">Events</h2>
-          {schema.events.map((event: any, idx: number) => (
-            <div key={idx} className="mb-4">
-              <h3 className="font-medium">{event.name}</h3>
-              <p className="text-gray-600">
-                {event.date} • {event.time}
-              </p>
-            </div>
-          ))}
-        </section>
+      <div className="w-1/2 overflow-y-auto bg-gray-50">
+        <TemplateRenderer templateComponent={templateComponent} schema={schema} />
       </div>
     </div>
   );

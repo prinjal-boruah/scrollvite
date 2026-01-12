@@ -13,6 +13,7 @@ import copy
 import uuid
 import hmac
 import hashlib
+from datetime import timedelta
 
 
 # Initialize Razorpay client
@@ -142,12 +143,34 @@ class VerifyPaymentView(APIView):
         order.status = "ACTIVE"
         order.save()
 
+        # Calculate expiry date based on wedding date
+        expires_at = None
+        try:
+            from django.utils.dateparse import parse_date
+            wedding_date_str = order.schema_snapshot.get('hero', {}).get('wedding_date')
+            if wedding_date_str:
+                wedding_date = parse_date(wedding_date_str)
+                if wedding_date:
+                    # Convert date to datetime and add 30 days
+                    from datetime import datetime as dt
+                    wedding_datetime = dt.combine(wedding_date, dt.min.time())
+                    # Make timezone aware
+                    wedding_datetime = timezone.make_aware(wedding_datetime)
+                    expires_at = wedding_datetime + timedelta(days=30)
+        except (ValueError, TypeError) as e:
+            print(f"Error parsing wedding date: {e}")
+        
+        # Fallback: If wedding date invalid or missing, default to 3 months from now
+        if not expires_at:
+            expires_at = timezone.now() + timedelta(days=90)
+
         # Create invite instance
         invite = InviteInstance.objects.create(
             order=order,
             template=order.template,
             schema=copy.deepcopy(order.schema_snapshot),
-            public_slug=f"invite-{uuid.uuid4().hex[:10]}"
+            public_slug=f"invite-{uuid.uuid4().hex[:10]}",
+            expires_at=expires_at
         )
 
         # Send emails
@@ -250,3 +273,31 @@ class InviteInstanceDetailView(APIView):
             "id": str(invite.id),
             "public_slug": invite.public_slug,
         })
+    
+    
+class MyTemplatesView(APIView):
+    """Get all templates purchased by the user"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Get all orders for this user with their invites
+        invites = InviteInstance.objects.filter(
+            order__user=request.user
+        ).select_related('template', 'order').order_by('-created_at')
+
+        data = []
+        for invite in invites:
+            data.append({
+                "invite_id": str(invite.id),
+                "template_id": invite.template.id,
+                "template_title": invite.template.title,
+                "template_component": invite.template.template_component,
+                "public_slug": invite.public_slug,
+                "created_at": invite.created_at,
+                "expires_at": invite.expires_at,
+                "is_expired": invite.is_expired(),
+                "bride_name": invite.schema.get('hero', {}).get('bride_name', ''),
+                "groom_name": invite.schema.get('hero', {}).get('groom_name', ''),
+            })
+
+        return Response(data)

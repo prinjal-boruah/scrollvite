@@ -60,7 +60,8 @@ class TemplateEditorView(APIView):
             "title": template.title,
             "schema": template.schema,
             "is_published": template.is_published,
-            "price": str(template.price),  # Add this line
+            "price": str(template.price),
+            "template_component": template.template_component,  # ← ADD THIS
         })
 
 
@@ -148,7 +149,15 @@ class InviteView(APIView):
             is_active=True
         )
 
+        # Check if expired
+        if invite.is_expired():
+            return Response({
+                "expired": True,
+                "message": "This invitation has expired. Please contact the host."
+            }, status=status.HTTP_410_GONE)
+
         return Response({
-            "schema": invite.schema
+            "schema": invite.schema,
+            "template_component": invite.template.template_component,
         })
 
