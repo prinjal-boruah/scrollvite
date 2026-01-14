@@ -30,37 +30,38 @@ export default function Navbar() {
   };
 
   return (
-    <header className="h-16 flex items-center justify-between px-8 border-b bg-white">
-      {/* LOGO */}
-      <div
-        className="font-serif text-xl cursor-pointer"
-        onClick={() => router.push("/categories")}
-      >
-        Scrollvite
-      </div>
-
-      {/* RIGHT SIDE */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={my_templates}
-          className="text-sm text-gray-600 hover:underline"
+    <nav className="bg-white border-b border-[#D4AF37] sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between">
+        <h1 
+          className="font-serif text-xl sm:text-2xl font-medium text-gray-900 cursor-pointer" 
+          style={{fontFamily: 'Playfair Display'}}
+          onClick={() => router.push("/categories")}
         >
-          My Templates
-        </button>
-
-        {user?.role && (
-          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600">
-            {user.role}
-          </span>
-        )}
-
-        <button
-          onClick={logout}
-          className="text-sm text-gray-600 hover:underline"
-        >
-          Logout
-        </button>
+          ScrollVite
+        </h1>
+        <div className="flex items-center gap-6 sm:gap-8">
+          <button
+            onClick={my_templates}
+            className="text-gray-700 hover:text-[#BFA37C] transition-colors text-sm sm:text-base font-light"
+            style={{fontFamily: 'Playfair Display'}}
+          >
+            My Templates
+          </button>
+          
+          {user?.role && (
+            <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600">
+              {user.role}
+            </span>
+          )}
+          
+          <button
+            onClick={logout}
+            className="text-gray-700 hover:text-[#BFA37C] transition-colors text-sm sm:text-base font-light"
+          >
+            Log out
+          </button>
+        </div>
       </div>
-    </header>
+    </nav>
   );
 }

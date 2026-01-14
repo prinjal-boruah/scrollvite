@@ -25,7 +25,7 @@ export default function ProtectedLayout({
       <Navbar />
 
       {/* Page-specific content */}
-      <main className="pt-8">
+      <main>
         {children}
       </main>
     </div>
