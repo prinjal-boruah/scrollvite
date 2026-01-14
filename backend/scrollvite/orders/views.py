@@ -258,6 +258,7 @@ class InviteInstanceDetailView(APIView):
             "schema": invite.schema,
             "public_slug": invite.public_slug,
             "is_active": invite.is_active,
+            "expires_at": invite.expires_at,
         })
 
     def put(self, request, invite_id):

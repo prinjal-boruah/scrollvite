@@ -1,40 +1,49 @@
-# Python/Django
-backend/__pycache__/
-backend/*.py[cod]
-backend/venv/
-backend/env/
-backend/.env
-backend/db.sqlite3
-backend/*.log
-backend/media/
-backend/staticfiles/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
 
-backend/scrollvite/__pycache__/
-backend/scrollvite/*.py[cod]
-backend/scrollvite/venv/
-backend/scrollvite/env/
-backend/scrollvite/.env
-backend/scrollvite/db.sqlite3
-backend/scrollvite/*.log
-backend/scrollvite/media/
-backend/scrollvite/staticfiles/
+# Django
+*.log
+*.pot
+*.pyc
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Environment variables
+.env
+.env.local
+.env*.local
 
 # Next.js
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-frontend/.env*.local
-frontend/build/
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/build/
 
-# General
+# IDE
 .DS_Store
 .vscode/
 .idea/
 *.swp
-.env
+*.swo
 
-backend/scrollvite/media/
+# Uploaded images (anywhere in the project)
 *.jpg
 *.jpeg
 *.png
 *.webp
+*.gif

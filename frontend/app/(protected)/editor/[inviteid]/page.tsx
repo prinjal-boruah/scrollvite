@@ -10,7 +10,9 @@ import TemplateRenderer from "@/components/TemplateRenderer";
 export default function InviteEditorPage() {
   const router = useRouter();
   const params = useParams();
-  const inviteId = params.inviteId as string;
+  const inviteId = params.inviteid as string;
+  console.log("DEBUG - params:", params);
+  console.log("DEBUG - inviteId:", inviteId);
 
   const [schema, setSchema] = useState<any>(null);
   const [templateTitle, setTemplateTitle] = useState("");
