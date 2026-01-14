@@ -14,6 +14,7 @@ export default function CategoriesPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("access");
@@ -45,6 +46,54 @@ export default function CategoriesPage() {
     <div className="min-h-screen bg-[#f7f5f2]">
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-6 sm:pt-8 pb-12 sm:pb-16">
+        <style>{`
+          @keyframes goldGlow {
+            0% {
+              box-shadow: 
+                6px 0 10px rgba(212, 175, 55, 0.12),
+                0 6px 10px rgba(212, 175, 55, 0.08),
+                -6px 0 10px rgba(212, 175, 55, 0.12),
+                0 -6px 10px rgba(212, 175, 55, 0.08),
+                0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            25% {
+              box-shadow: 
+                3px 5px 10px rgba(212, 175, 55, 0.12),
+                -5px 3px 10px rgba(212, 175, 55, 0.1),
+                -3px -5px 10px rgba(212, 175, 55, 0.12),
+                5px -3px 10px rgba(212, 175, 55, 0.08),
+                0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            50% {
+              box-shadow: 
+                0 6px 10px rgba(212, 175, 55, 0.12),
+                -6px 0 10px rgba(212, 175, 55, 0.1),
+                0 -6px 10px rgba(212, 175, 55, 0.12),
+                6px 0 10px rgba(212, 175, 55, 0.08),
+                0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            75% {
+              box-shadow: 
+                -3px 5px 10px rgba(212, 175, 55, 0.12),
+                -5px -3px 10px rgba(212, 175, 55, 0.1),
+                3px -5px 10px rgba(212, 175, 55, 0.12),
+                5px 3px 10px rgba(212, 175, 55, 0.08),
+                0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            100% {
+              box-shadow: 
+                6px 0 10px rgba(212, 175, 55, 0.12),
+                0 6px 10px rgba(212, 175, 55, 0.08),
+                -6px 0 10px rgba(212, 175, 55, 0.12),
+                0 -6px 10px rgba(212, 175, 55, 0.08),
+                0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+          }
+          
+          .gold-glow-card {
+            animation: goldGlow 3s ease-in-out infinite;
+          }
+        `}</style>
         <div className="mb-12">
           <h2 className="font-serif text-3xl sm:text-4xl font-light text-gray-900 mb-2" style={{fontFamily: 'Playfair Display'}}>
             Template Gallery
@@ -59,22 +108,29 @@ export default function CategoriesPage() {
             No categories available
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
             {categories.map((category) => (
               <div
                 key={category.id}
+                onMouseEnter={() => setHoveredId(category.id)}
+                onMouseLeave={() => setHoveredId(null)}
                 onClick={() => router.push(`/templates/${category.slug}`)}
-                className="group cursor-pointer bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col"
+                className={`bg-white rounded-3xl overflow-hidden cursor-pointer flex flex-col group transition-all duration-300 ${
+                  hoveredId === category.id ? 'gold-glow-card' : ''
+                }`}
+                style={{boxShadow: hoveredId === category.id ? undefined : '0 4px 20px rgba(0,0,0,0.08)'}}
               >
-                <div className="aspect-square bg-gray-200 flex items-center justify-center overflow-hidden group-hover:bg-gray-300 transition-colors">
-                  <img 
-                    src={`https://picsum.photos/400/400?random=${category.id}`}
-                    alt={category.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                <div className="p-3 sm:p-4">
+                  <div className="h-40 sm:h-48 bg-gray-200 rounded-2xl flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                    <img 
+                      src={`https://picsum.photos/400/400?random=${category.id}`}
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 </div>
-                <div className="p-4 sm:p-5">
-                  <h3 className="font-serif text-base sm:text-lg text-gray-900 text-center" style={{fontFamily: 'Playfair Display'}}>
+                <div className="px-3 sm:px-4 pb-3 sm:pb-4 flex flex-col flex-1">
+                  <h3 className="font-serif text-sm sm:text-base text-gray-900 text-center" style={{fontFamily: 'Playfair Display'}}>
                     {category.name}
                   </h3>
                 </div>
