@@ -5,10 +5,193 @@ html,
 body {
   height: 100%;
   font-family: var(--font-inter), system-ui, sans-serif;
-  background-color: #f7f5f2;
+  background-color: #F9F8F6;
 }
 
 /* ===== Brand helpers ===== */
 .font-serif {
   font-family: var(--font-playfair), serif;
+}
+
+/* ===== ScrollVite Gold Gradient Button ===== */
+.scrollvite-gold-button {
+  background: linear-gradient(135deg, #D4AF37 0%, #BFA37C 50%, #A68B5B 100%) !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+  padding: 0.625rem 1.5rem !important;
+  font-weight: 500 !important;
+  color: white !important;
+  font-size: 0.875rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  white-space: nowrap !important;
+  min-width: fit-content !important;
+}
+
+.scrollvite-gold-button.w-full {
+  width: 100% !important;
+  min-width: 100% !important;
+}
+
+@media (max-width: 640px) {
+  .scrollvite-gold-button {
+    font-size: 0.75rem !important;
+    padding: 0.5rem 1rem !important;
+    gap: 0.375rem !important;
+  }
+  
+  .scrollvite-gold-button-large {
+    font-size: 0.875rem !important;
+    padding: 0.75rem 1.5rem !important;
+  }
+}
+
+.scrollvite-gold-button:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  transform: translateY(-1px) !important;
+}
+
+.scrollvite-gold-button:active {
+  transform: translateY(0) !important;
+}
+
+.scrollvite-gold-button-large {
+  padding: 1rem 2.5rem !important;
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  gap: 0.75rem !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.scrollvite-gold-button-large:hover {
+  box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.35) !important;
+  transform: scale(1.05) !important;
+}
+
+/* Style Google Login buttons - Navbar size */
+nav div[id*="google-signin"] button {
+  background: linear-gradient(135deg, #D4AF37 0%, #BFA37C 50%, #A68B5B 100%) !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+  padding: 0.625rem 1.5rem !important;
+  color: white !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+nav div[id*="google-signin"] button:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Style Google Login buttons - Hero size */
+main > div > div:last-child div[id*="google-signin"] button {
+  background: linear-gradient(135deg, #D4AF37 0%, #BFA37C 50%, #A68B5B 100%) !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+  padding: 1rem 2.5rem !important;
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 1.125rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.75rem !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.3s ease !important;
+}
+
+main > div > div:last-child div[id*="google-signin"] button:hover {
+  box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.35) !important;
+  transform: scale(1.05) !important;
+}
+
+/* Fallback for any Google button */
+div[id*="google-signin"] button,
+div[data-testid*="google"] button {
+  background: linear-gradient(135deg, #D4AF37 0%, #BFA37C 50%, #A68B5B 100%) !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+  color: white !important;
+  font-weight: 500 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+div[id*="google-signin"] button:hover,
+div[data-testid*="google"] button:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ===== ScrollVite Google Button (Gold Gradient Background, Black Text, Oval Shape) ===== */
+.scrollvite-google-button {
+  background: linear-gradient(135deg, #D4AF37 0%, #BFA37C 50%, #A68B5B 100%) !important;
+  border: none !important;
+  border-radius: 9999px !important; /* Fully rounded/oval */
+  padding: 0.625rem 1.5rem !important;
+  font-weight: 500 !important;
+  color: #000000 !important;
+  font-size: 0.875rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  white-space: nowrap !important;
+  min-width: fit-content !important;
+}
+
+.scrollvite-google-button:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  transform: translateY(-1px) !important;
+}
+
+.scrollvite-google-button:active {
+  transform: translateY(0) !important;
+}
+
+.scrollvite-google-button.w-full {
+  width: 100% !important;
+  min-width: 100% !important;
+}
+
+.scrollvite-google-button-large {
+  padding: 1rem 2.5rem !important;
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  gap: 0.75rem !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.scrollvite-google-button-large:hover {
+  box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.35) !important;
+  transform: scale(1.05) !important;
+}
+
+@media (max-width: 640px) {
+  .scrollvite-google-button {
+    font-size: 0.75rem !important;
+    padding: 0.5rem 1rem !important;
+    gap: 0.375rem !important;
+  }
+  
+  .scrollvite-google-button-large {
+    font-size: 0.875rem !important;
+    padding: 0.75rem 1.5rem !important;
+  }
 }
