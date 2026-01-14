@@ -14,6 +14,9 @@ import uuid
 import hmac
 import hashlib
 from datetime import timedelta
+from django.core.files.storage import default_storage
+from PIL import Image
+import os
 
 
 # Initialize Razorpay client
@@ -301,3 +304,177 @@ class MyTemplatesView(APIView):
             })
 
         return Response(data)
+
+
+class UploadInviteImageView(APIView):
+    """Upload and resize images for invite instances"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, invite_id):
+        # Get invite and verify ownership
+        invite = get_object_or_404(
+            InviteInstance, 
+            id=invite_id, 
+            order__user=request.user
+        )
+        
+        # Validate image file
+        if 'image' not in request.FILES:
+            return Response(
+                {"error": "No image provided"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        image_file = request.FILES['image']
+        
+        # Validate file type
+        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+        if image_file.content_type not in allowed_types:
+            return Response(
+                {"error": "Invalid file type. Only JPEG, PNG, and WebP are allowed."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate file size (max 10MB)
+        max_size = 10 * 1024 * 1024  # 10MB
+        if image_file.size > max_size:
+            return Response(
+                {"error": "File too large. Maximum size is 10MB."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Open and process image
+            img = Image.open(image_file)
+            
+            # Convert RGBA to RGB if needed
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+            
+            # Resize image (max width 1200px, maintain aspect ratio)
+            max_width = 1200
+            if img.width > max_width:
+                ratio = max_width / img.width
+                new_height = int(img.height * ratio)
+                img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+            
+            # Generate unique filename
+            ext = 'jpg'  # Save as JPEG for consistency
+            filename = f"invites/{invite_id}/{uuid.uuid4()}.{ext}"
+            
+            # Save to temporary file
+            from io import BytesIO
+            buffer = BytesIO()
+            img.save(buffer, format='JPEG', quality=85, optimize=True)
+            buffer.seek(0)
+            
+            # Save file
+            path = default_storage.save(filename, buffer)
+            
+            # Build absolute URL
+            if settings.DEBUG:
+                # Local development
+                url = request.build_absolute_uri(settings.MEDIA_URL + path)
+            else:
+                # Production (S3)
+                url = default_storage.url(path)
+            
+            return Response({
+                "url": url,
+                "filename": os.path.basename(path)
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to process image: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class UploadTemplateImageView(APIView):
+    """Upload default images for templates (admin only)"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, template_id):
+        # Verify admin access
+        if request.user.role != "SUPER_ADMIN":
+            return Response(
+                {"error": "Admin access required"}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Get template
+        from templates_app.models import Template
+        template = get_object_or_404(Template, id=template_id)
+        
+        # Validate image file
+        if 'image' not in request.FILES:
+            return Response(
+                {"error": "No image provided"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        image_file = request.FILES['image']
+        
+        # Validate file type
+        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+        if image_file.content_type not in allowed_types:
+            return Response(
+                {"error": "Invalid file type. Only JPEG, PNG, and WebP are allowed."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate file size (max 10MB)
+        max_size = 10 * 1024 * 1024  # 10MB
+        if image_file.size > max_size:
+            return Response(
+                {"error": "File too large. Maximum size is 10MB."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Open and process image
+            img = Image.open(image_file)
+            
+            # Convert RGBA to RGB if needed
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+            
+            # Resize image (max width 1200px, maintain aspect ratio)
+            max_width = 1200
+            if img.width > max_width:
+                ratio = max_width / img.width
+                new_height = int(img.height * ratio)
+                img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+            
+            # Generate unique filename
+            ext = 'jpg'  # Save as JPEG for consistency
+            filename = f"templates/{template_id}/{uuid.uuid4()}.{ext}"
+            
+            # Save to temporary file
+            from io import BytesIO
+            buffer = BytesIO()
+            img.save(buffer, format='JPEG', quality=85, optimize=True)
+            buffer.seek(0)
+            
+            # Save file
+            path = default_storage.save(filename, buffer)
+            
+            # Build absolute URL
+            if settings.DEBUG:
+                # Local development
+                url = request.build_absolute_uri(settings.MEDIA_URL + path)
+            else:
+                # Production (S3)
+                url = default_storage.url(path)
+            
+            return Response({
+                "url": url,
+                "filename": os.path.basename(path)
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to process image: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

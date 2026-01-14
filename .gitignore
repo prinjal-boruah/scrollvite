@@ -32,3 +32,9 @@ frontend/build/
 .idea/
 *.swp
 .env
+
+backend/scrollvite/media/
+*.jpg
+*.jpeg
+*.png
+*.webp

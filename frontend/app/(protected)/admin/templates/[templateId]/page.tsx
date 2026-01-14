@@ -3,6 +3,7 @@ import { logout } from "@/lib/logout";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { fetchTemplate, saveTemplate } from "@/lib/api";
+import TemplateRenderer from "@/components/TemplateRenderer";
 
 export default function AdminTemplateEditorPage() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function AdminTemplateEditorPage() {
 
   const [schema, setSchema] = useState<any>(null);
   const [title, setTitle] = useState("");
+  const [templateComponent, setTemplateComponent] = useState("RoyalWeddingTemplate");
   const [isPublished, setIsPublished] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -34,6 +36,7 @@ export default function AdminTemplateEditorPage() {
         setSchema(data.schema);
         setTitle(data.title);
         setIsPublished(data.is_published);
+        setTemplateComponent(data.template_component || "RoyalWeddingTemplate");
       })
       .catch(() => {
         alert("Failed to load template");
@@ -188,33 +191,12 @@ export default function AdminTemplateEditorPage() {
         </button>
       </div>
 
-      {/* RIGHT: LIVE PREVIEW */}
-      <div className="w-1/2 overflow-y-auto bg-[#fafafa] px-6 py-12 text-center">
-        <section className="mb-16">
-          <h1 className="text-4xl font-serif">{schema.hero.bride_name}</h1>
-          <p className="my-2">&</p>
-          <h1 className="text-4xl font-serif">{schema.hero.groom_name}</h1>
-          <p className="italic mt-4 text-gray-600">{schema.hero.subtitle}</p>
-          <p className="mt-2 font-medium">{schema.hero.wedding_date}</p>
-        </section>
-
-        <section className="mb-16">
-          <h2 className="text-2xl font-serif mb-4">Venue</h2>
-          <p>{schema.venue.name}</p>
-          <p className="text-gray-600">{schema.venue.city}</p>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-serif mb-6">Events</h2>
-          {schema.events.map((event: any, idx: number) => (
-            <div key={idx} className="mb-4">
-              <h3 className="font-medium">{event.name}</h3>
-              <p className="text-gray-600">
-                {event.date} • {event.time}
-              </p>
-            </div>
-          ))}
-        </section>
+      {/* RIGHT: LIVE PREVIEW - NOW USING TemplateRenderer! */}
+      <div className="w-1/2 overflow-y-auto bg-gray-50">
+        <TemplateRenderer 
+          templateComponent={templateComponent} 
+          schema={schema} 
+        />
       </div>
     </div>
   );

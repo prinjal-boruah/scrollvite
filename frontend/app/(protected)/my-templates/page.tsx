@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { fetchMyTemplates } from "@/lib/api";
 
 type PurchasedTemplate = {
   invite_id: string;
@@ -28,12 +29,7 @@ export default function MyTemplatesPage() {
       return;
     }
 
-    fetch("http://127.0.0.1:8000/api/my-templates/", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
+    fetchMyTemplates()
       .then((data) => {
         setTemplates(data);
         setLoading(false);

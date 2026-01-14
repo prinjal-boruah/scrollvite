@@ -1,14 +1,16 @@
+// Add this component to your editor page
+// This shows how to add image upload for one field - you can add more
+
 "use client";
-import { logout } from "@/lib/logout";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { fetchInviteInstance, saveInviteInstance } from "@/lib/api";
+import { fetchInviteInstance, saveInviteInstance, uploadInviteImage } from "@/lib/api";
 import TemplateRenderer from "@/components/TemplateRenderer";
 
 export default function InviteEditorPage() {
   const router = useRouter();
   const params = useParams();
-  const inviteId = params.inviteid as string;
+  const inviteId = params.inviteId as string;
 
   const [schema, setSchema] = useState<any>(null);
   const [templateTitle, setTemplateTitle] = useState("");
@@ -17,6 +19,7 @@ export default function InviteEditorPage() {
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [expired, setExpired] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("access");
@@ -25,7 +28,6 @@ export default function InviteEditorPage() {
       return;
     }
 
-    // Fetch the invite instance (user-owned)
     fetchInviteInstance(inviteId)
       .then((data) => {
         if (data.expired) {
@@ -50,17 +52,12 @@ export default function InviteEditorPage() {
       <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md px-6">
           <div className="text-6xl mb-6">⏰</div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">
-            Invite Expired
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">Invite Expired</h1>
           <p className="text-gray-600 mb-6">
             Your invite expired on {expiresAt ? new Date(expiresAt).toLocaleDateString() : 'N/A'}.
             Purchase a new template to create another invite.
           </p>
-          <button
-            onClick={() => router.push("/categories")}
-            className="bg-black text-white px-6 py-3 rounded-full"
-          >
+          <button onClick={() => router.push("/categories")} className="bg-black text-white px-6 py-3 rounded-full">
             Browse Templates
           </button>
         </div>
@@ -96,11 +93,32 @@ export default function InviteEditorPage() {
       ...newEvents[index],
       [key]: value,
     };
-
     setSchema({
       ...schema,
       events: newEvents,
     });
+  };
+
+  const handleImageUpload = async (field: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File too large. Maximum size is 10MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const result = await uploadInviteImage(inviteId, file);
+      updateHero(field, result.url);
+      alert("Image uploaded successfully!");
+    } catch (error: any) {
+      alert(error.message || "Failed to upload image");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -121,7 +139,6 @@ export default function InviteEditorPage() {
 
   return (
     <div className="h-screen flex">
-      {/* Floating View Public Button */}
       <div className="fixed top-20 right-8 z-50">
         <button
           onClick={handleViewPublic}
@@ -136,15 +153,12 @@ export default function InviteEditorPage() {
         <h1 className="text-xl font-bold mb-2">Edit Your Invite</h1>
         <p className="text-sm text-gray-500 mb-6">Template: {templateTitle}</p>
 
-        {/* Expiry Warning */}
         {expiresAt && (
           <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
             <div className="flex items-start">
               <span className="text-yellow-600 text-xl mr-3">⚠️</span>
               <div>
-                <p className="text-sm font-medium text-yellow-800">
-                  Expiry Notice
-                </p>
+                <p className="text-sm font-medium text-yellow-800">Expiry Notice</p>
                 <p className="text-sm text-yellow-700 mt-1">
                   This invite expires on <strong>{new Date(expiresAt).toLocaleDateString('en-US', { 
                     day: 'numeric', 
@@ -159,31 +173,63 @@ export default function InviteEditorPage() {
 
         <h2 className="font-semibold mb-2">Hero Section</h2>
 
+        {/* Couple Photo Upload */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">
+            Couple Photo (Optional)
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleImageUpload("couple_photo", e)}
+            disabled={uploading}
+            className="border p-2 w-full mb-2 disabled:bg-gray-100"
+          />
+          {uploading && (
+            <p className="text-sm text-blue-600">Uploading...</p>
+          )}
+          {schema.hero.couple_photo && (
+            <div className="mt-2">
+              <img 
+                src={schema.hero.couple_photo} 
+                alt="Couple" 
+                className="h-32 w-32 object-cover rounded-lg border"
+              />
+              <button
+                onClick={() => updateHero("couple_photo", "")}
+                className="text-xs text-red-600 mt-1 hover:underline"
+              >
+                Remove photo
+              </button>
+            </div>
+          )}
+        </div>
+
         <input
           className="border p-2 w-full mb-2"
           placeholder="Bride Name"
-          value={schema.hero.bride_name}
+          value={schema.hero.bride_name || ""}
           onChange={(e) => updateHero("bride_name", e.target.value)}
         />
 
         <input
           className="border p-2 w-full mb-2"
           placeholder="Groom Name"
-          value={schema.hero.groom_name}
+          value={schema.hero.groom_name || ""}
           onChange={(e) => updateHero("groom_name", e.target.value)}
         />
 
         <input
           className="border p-2 w-full mb-2"
           placeholder="Subtitle"
-          value={schema.hero.subtitle}
+          value={schema.hero.subtitle || ""}
           onChange={(e) => updateHero("subtitle", e.target.value)}
         />
 
         <input
           type="date"
           className="border p-2 w-full mb-6"
-          value={schema.hero.wedding_date}
+          value={schema.hero.wedding_date || ""}
           onChange={(e) => updateHero("wedding_date", e.target.value)}
         />
 
@@ -192,14 +238,14 @@ export default function InviteEditorPage() {
         <input
           className="border p-2 w-full mb-2"
           placeholder="Venue Name"
-          value={schema.venue.name}
+          value={schema.venue.name || ""}
           onChange={(e) => updateVenue("name", e.target.value)}
         />
 
         <input
           className="border p-2 w-full mb-6"
           placeholder="City"
-          value={schema.venue.city}
+          value={schema.venue.city || ""}
           onChange={(e) => updateVenue("city", e.target.value)}
         />
 
@@ -210,19 +256,19 @@ export default function InviteEditorPage() {
             <input
               className="border p-2 w-full mb-2"
               placeholder="Event Name"
-              value={event.name}
+              value={event.name || ""}
               onChange={(e) => updateEvent(idx, "name", e.target.value)}
             />
             <input
               type="date"
               className="border p-2 w-full mb-2"
-              value={event.date}
+              value={event.date || ""}
               onChange={(e) => updateEvent(idx, "date", e.target.value)}
             />
             <input
               className="border p-2 w-full"
               placeholder="Time"
-              value={event.time}
+              value={event.time || ""}
               onChange={(e) => updateEvent(idx, "time", e.target.value)}
             />
           </div>

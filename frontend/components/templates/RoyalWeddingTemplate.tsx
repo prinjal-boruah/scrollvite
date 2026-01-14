@@ -1,3 +1,5 @@
+// Example: Update RoyalWeddingTemplate.tsx to show uploaded couple photo
+
 "use client";
 
 interface RoyalWeddingTemplateProps {
@@ -7,7 +9,6 @@ interface RoyalWeddingTemplateProps {
 export default function RoyalWeddingTemplate({ schema }: RoyalWeddingTemplateProps) {
   const { hero, couple_story, venue, events, closing } = schema;
 
-  // Safe fallbacks for optional fields
   const safeHero = hero || {};
   const safeVenue = venue || {};
   const safeEvents = events || [];
@@ -26,7 +27,6 @@ export default function RoyalWeddingTemplate({ schema }: RoyalWeddingTemplatePro
       <div className="min-h-screen bg-gradient-to-br from-[#FFF8F0] to-[#FFF5E6] text-[#2C2416]">
         {/* Hero Section */}
         <section className="min-h-screen flex flex-col justify-center items-center text-center px-6 py-16 relative overflow-hidden">
-          {/* Animated background pattern */}
           <div className="absolute inset-0 opacity-30">
             <div className="absolute inset-0" style={{
               backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(139, 69, 19, 0.1) 0%, transparent 50%)'
@@ -39,6 +39,17 @@ export default function RoyalWeddingTemplate({ schema }: RoyalWeddingTemplatePro
             <p className="text-sm uppercase tracking-widest text-[#8B4513] mb-8 font-medium">
               {safeHero.greeting || "You are invited to the wedding of"}
             </p>
+
+            {/* Couple Photo - NEW! */}
+            {safeHero.couple_photo && (
+              <div className="mb-8">
+                <img 
+                  src={safeHero.couple_photo} 
+                  alt="Couple" 
+                  className="w-48 h-48 object-cover rounded-full mx-auto border-4 border-[#D4AF37] shadow-2xl"
+                />
+              </div>
+            )}
 
             <h1 className="font-serif text-5xl md:text-7xl font-bold text-[#2C2416] mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
               {safeHero.bride_name || "Bride"}

@@ -29,6 +29,66 @@ export function getCurrentUser() {
 }
 
 /**
+ * API: Fetch categories
+ */
+export async function fetchCategories() {
+  const res = await fetch(`${API_BASE_URL}/api/categories/`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch categories");
+  }
+
+  return res.json();
+}
+
+/**
+ * API: Fetch templates by category
+ */
+export async function fetchTemplatesByCategory(categorySlug: string) {
+  const res = await fetch(`${API_BASE_URL}/api/templates/${categorySlug}/`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch templates");
+  }
+
+  return res.json();
+}
+
+/**
+ * API: Fetch template details (for preview)
+ */
+export async function fetchTemplateDetail(templateId: string) {
+  const res = await fetch(`${API_BASE_URL}/api/template-editor/${templateId}/`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch template");
+  }
+
+  return res.json();
+}
+
+/**
+ * API: Fetch user's purchased templates
+ */
+export async function fetchMyTemplates() {
+  const res = await fetch(`${API_BASE_URL}/api/my-templates/`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch my templates");
+  }
+
+  return res.json();
+}
+
+/**
  * API: Fetch invite instance for editing (user-owned)
  */
 export async function fetchInviteInstance(inviteId: string) {
@@ -98,17 +158,87 @@ export async function saveTemplate(templateId: string, schema: any, isPublished?
 }
 
 /**
- * API: Buy template and create invite instance
+ * API: Fetch public invite (no auth required)
  */
-export async function buyTemplate(templateId: string) {
-  const res = await fetch(`${API_BASE_URL}/api/buy/${templateId}/`, {
+export async function fetchPublicInvite(slug: string) {
+  const res = await fetch(`${API_BASE_URL}/api/invite/${slug}/`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch invite");
+  }
+
+  return res.json();
+}
+
+/**
+ * API: Google Login
+ */
+export async function googleLogin(idToken: string) {
+  const res = await fetch(`${API_BASE_URL}/api/auth/google/`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id_token: idToken }),
   });
 
   if (!res.ok) {
-    throw new Error("Failed to purchase template");
+    throw new Error("Login failed");
   }
 
+  return res.json();
+}
+
+/**
+ * API: Upload image for invite instance
+ */
+export async function uploadInviteImage(inviteId: string, file: File) {
+  const formData = new FormData();
+  formData.append('image', file);
+  
+  const token = localStorage.getItem("access");
+  
+  const res = await fetch(
+    `${API_BASE_URL}/api/invites/${inviteId}/upload-image/`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData, // Don't set Content-Type - browser sets it with boundary
+    }
+  );
+  
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Failed to upload image");
+  }
+  
+  return res.json(); // Returns { url: "...", filename: "..." }
+}
+
+/**
+ * API: Upload default image for template (admin only)
+ */
+export async function uploadTemplateImage(templateId: string, file: File) {
+  const formData = new FormData();
+  formData.append('image', file);
+  
+  const token = localStorage.getItem("access");
+  
+  const res = await fetch(
+    `${API_BASE_URL}/api/template-upload-image/${templateId}/`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    }
+  );
+  
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Failed to upload image");
+  }
+  
   return res.json();
 }

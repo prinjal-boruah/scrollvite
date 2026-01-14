@@ -1,53 +1,76 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import TemplateRenderer from "@/components/TemplateRenderer";
+import { fetchPublicInvite } from "@/lib/api";
 
-interface PublicInvitePageProps {
-  params: Promise<{
-    publicSlug: string;
-  }>;
-}
+export default function PublicInvitePage() {
+  const params = useParams();
+  const slug = params.publicSlug as string;
 
-export default async function PublicInvitePage({
-  params,
-}: PublicInvitePageProps) {
-  const { publicSlug } = await params;
+  const [invite, setInvite] = useState<any>(null);
+  const [expired, setExpired] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/invite/${publicSlug}/`,
-    {
-      cache: "no-store",
-    }
-  );
+  useEffect(() => {
+    fetchPublicInvite(slug)
+      .then((data) => {
+        if (data.expired) {
+          setExpired(true);
+        } else {
+          setInvite(data);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load invite:", err);
+        setLoading(false);
+      });
+  }, [slug]);
 
-  if (!res.ok) {
-    notFound();
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <p className="text-gray-600">Loading invitation...</p>
+        </div>
+      </div>
+    );
   }
 
-  const data = await res.json();
-  
-  // Handle expired invites
-  if (data.expired) {
+  if (expired) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] to-[#FFF5E6]">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center max-w-md px-6">
           <div className="text-6xl mb-6">⏰</div>
-          <h1 className="text-3xl font-serif font-bold text-gray-800 mb-4">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">
             Invitation Expired
           </h1>
-          <p className="text-gray-600 text-lg">
-            This wedding invitation has expired. Please contact the host for more information.
+          <p className="text-gray-600">
+            This invitation has expired. Please contact the host for more information.
           </p>
         </div>
       </div>
     );
   }
-  
-  if (!data.schema) {
-    notFound();
+
+  if (!invite) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-4xl mb-4">❌</div>
+          <p className="text-gray-600">Invitation not found</p>
+        </div>
+      </div>
+    );
   }
 
-  // Get template component name (defaults to RoyalWeddingTemplate if not provided)
-  const templateComponent = data.template_component || "RoyalWeddingTemplate";
-
-  return <TemplateRenderer templateComponent={templateComponent} schema={data.schema} />;
+  return (
+    <TemplateRenderer
+      templateComponent={invite.template_component}
+      schema={invite.schema}
+    />
+  );
 }

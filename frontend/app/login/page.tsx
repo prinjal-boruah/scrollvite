@@ -2,6 +2,7 @@
 
 import { GoogleLogin } from "@react-oauth/google";
 import { useRouter } from "next/navigation";
+import { googleLogin } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -50,21 +51,16 @@ export default function LoginPage() {
               onSuccess={async (credentialResponse) => {
                 const idToken = credentialResponse.credential;
 
-                const res = await fetch(
-                  "http://127.0.0.1:8000/api/auth/google/",
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id_token: idToken }),
-                  }
-                );
+                try {
+                  const data = await googleLogin(idToken);
 
-                const data = await res.json();
+                  localStorage.setItem("access", data.access);
+                  localStorage.setItem("user", JSON.stringify(data.user));
 
-                localStorage.setItem("access", data.access);
-                localStorage.setItem("user", JSON.stringify(data.user));
-
-                router.push("/categories");
+                  router.push("/categories");
+                } catch (error) {
+                  alert("Login failed. Please try again.");
+                }
               }}
               onError={() => {
                 alert("Login failed. Please try again.");
