@@ -92,111 +92,157 @@ export default function AdminTemplateEditorPage() {
   };
 
   return (
-    <div className="h-screen flex">
-      {/* LEFT: EDITOR */}
-      <div className="w-1/2 p-6 overflow-y-auto border-r">
-        <h1 className="text-xl font-bold mb-2">Admin: Edit Template</h1>
-        <p className="text-sm text-gray-500 mb-6">{title}</p>
+    <div className="h-screen flex flex-col">
+      <style>{`
+        .input-minimal {
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid #D4AF37;
+          padding: 12px 0;
+          transition: border-color 0.3s ease;
+          font-family: 'Inter', sans-serif;
+        }
+        .input-minimal:focus {
+          outline: none;
+          border-bottom-color: #8B4513;
+        }
+        .input-minimal::placeholder {
+          color: #A0907A;
+        }
+        .gradient-button {
+          background: linear-gradient(135deg, #D4AF37 0%, #C49A2C 100%);
+        }
+        .gradient-button:hover {
+          box-shadow: 0 12px 24px rgba(212, 175, 55, 0.4);
+        }
+      `}</style>
 
-        <div className="mb-6 flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="published"
-            checked={isPublished}
-            onChange={(e) => setIsPublished(e.target.checked)}
-            className="w-4 h-4"
-          />
-          <label htmlFor="published" className="text-sm font-medium">
-            Published (visible to buyers)
-          </label>
-        </div>
-
-        <h2 className="font-semibold mb-2">Hero Section</h2>
-
-        <input
-          className="border p-2 w-full mb-2"
-          placeholder="Bride Name (default)"
-          value={schema.hero.bride_name}
-          onChange={(e) => updateHero("bride_name", e.target.value)}
-        />
-
-        <input
-          className="border p-2 w-full mb-2"
-          placeholder="Groom Name (default)"
-          value={schema.hero.groom_name}
-          onChange={(e) => updateHero("groom_name", e.target.value)}
-        />
-
-        <input
-          className="border p-2 w-full mb-2"
-          placeholder="Subtitle (default)"
-          value={schema.hero.subtitle}
-          onChange={(e) => updateHero("subtitle", e.target.value)}
-        />
-
-        <input
-          type="date"
-          className="border p-2 w-full mb-6"
-          value={schema.hero.wedding_date}
-          onChange={(e) => updateHero("wedding_date", e.target.value)}
-        />
-
-        <h2 className="font-semibold mb-2">Venue (Default)</h2>
-
-        <input
-          className="border p-2 w-full mb-2"
-          placeholder="Venue Name"
-          value={schema.venue.name}
-          onChange={(e) => updateVenue("name", e.target.value)}
-        />
-
-        <input
-          className="border p-2 w-full mb-6"
-          placeholder="City"
-          value={schema.venue.city}
-          onChange={(e) => updateVenue("city", e.target.value)}
-        />
-
-        <h2 className="font-semibold mb-4">Events (Default)</h2>
-
-        {schema.events.map((event: any, idx: number) => (
-          <div key={idx} className="border p-4 mb-4 rounded">
-            <input
-              className="border p-2 w-full mb-2"
-              placeholder="Event Name"
-              value={event.name}
-              onChange={(e) => updateEvent(idx, "name", e.target.value)}
-            />
-            <input
-              type="date"
-              className="border p-2 w-full mb-2"
-              value={event.date}
-              onChange={(e) => updateEvent(idx, "date", e.target.value)}
-            />
-            <input
-              className="border p-2 w-full"
-              placeholder="Time"
-              value={event.time}
-              onChange={(e) => updateEvent(idx, "time", e.target.value)}
-            />
+      {/* Header */}
+      <div className="bg-white border-b border-[#D4AF37]/20 px-6 md:px-8 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-serif text-[#2C2416]" style={{ fontFamily: "'Playfair Display'" }}>Edit Template</h1>
+            <p className="text-xs text-[#8B4513]">{title}</p>
           </div>
-        ))}
-
-        <button
-          className="bg-black text-white px-4 py-2 mt-4 disabled:bg-gray-400"
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? "Saving..." : "Save Template"}
-        </button>
+          <button
+            className="gradient-button text-[#2C2416] px-6 py-2.5 rounded-full font-semibold shadow-lg hover:shadow-xl transition text-sm"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? "Saving..." : "Save Template"}
+          </button>
+        </div>
       </div>
 
-      {/* RIGHT: LIVE PREVIEW - NOW USING TemplateRenderer! */}
-      <div className="w-1/2 overflow-y-auto bg-gray-50">
-        <TemplateRenderer 
-          templateComponent={templateComponent} 
-          schema={schema} 
-        />
+      {/* Main Content - Side by Side */}
+      <div className="flex-1 overflow-hidden flex">
+        {/* LEFT: EDITOR */}
+        <div className="w-1/2 overflow-y-auto border-r border-[#D4AF37]/20 px-6 md:px-8 py-6 bg-[#f7f5f2]">
+          {/* Published Toggle */}
+          <div className="mb-6 flex items-center gap-3 p-3 bg-white rounded-lg border border-[#D4AF37]/20">
+            <input
+              type="checkbox"
+              id="published"
+              checked={isPublished}
+              onChange={(e) => setIsPublished(e.target.checked)}
+              className="w-5 h-5 accent-[#D4AF37]"
+            />
+            <label htmlFor="published" className="text-sm font-medium text-[#2C2416]">
+              Publish (visible to buyers)
+            </label>
+          </div>
+
+          {/* Hero Section */}
+          <h2 className="font-serif text-base text-[#2C2416] mb-4 pb-2 border-b border-[#D4AF37]/30" style={{ fontFamily: "'Playfair Display'" }}>
+            Hero Section
+          </h2>
+
+          <input
+            className="input-minimal w-full mb-4 text-sm"
+            placeholder="Bride Name (default)"
+            value={schema.hero.bride_name || ""}
+            onChange={(e) => updateHero("bride_name", e.target.value)}
+          />
+
+          <input
+            className="input-minimal w-full mb-4 text-sm"
+            placeholder="Groom Name (default)"
+            value={schema.hero.groom_name || ""}
+            onChange={(e) => updateHero("groom_name", e.target.value)}
+          />
+
+          <input
+            className="input-minimal w-full mb-4 text-sm"
+            placeholder="Greeting/Subtitle (default)"
+            value={schema.hero.greeting || ""}
+            onChange={(e) => updateHero("greeting", e.target.value)}
+          />
+
+          <div className="mb-6">
+            <label className="block text-xs font-medium text-[#8B4513] mb-1 uppercase tracking-wide">Wedding Date</label>
+            <input
+              type="date"
+              className="input-minimal w-full text-sm"
+              value={schema.hero.wedding_date || ""}
+              onChange={(e) => updateHero("wedding_date", e.target.value)}
+            />
+          </div>
+
+          {/* Venue Section */}
+          <h2 className="font-serif text-base text-[#2C2416] mb-4 pb-2 border-b border-[#D4AF37]/30" style={{ fontFamily: "'Playfair Display'" }}>
+            Venue (Default)
+          </h2>
+
+          <input
+            className="input-minimal w-full mb-4 text-sm"
+            placeholder="Venue Name"
+            value={schema.venue.name || ""}
+            onChange={(e) => updateVenue("name", e.target.value)}
+          />
+
+          <input
+            className="input-minimal w-full mb-6 text-sm"
+            placeholder="City"
+            value={schema.venue.city || ""}
+            onChange={(e) => updateVenue("city", e.target.value)}
+          />
+
+          {/* Events Section */}
+          <h2 className="font-serif text-base text-[#2C2416] mb-4 pb-2 border-b border-[#D4AF37]/30" style={{ fontFamily: "'Playfair Display'" }}>
+            Events (Default)
+          </h2>
+
+          {schema.events && schema.events.map((event: any, idx: number) => (
+            <div key={idx} className="bg-white p-4 mb-3 rounded-lg border border-[#D4AF37]/20">
+              <input
+                className="input-minimal w-full mb-3 text-sm"
+                placeholder="Event Name"
+                value={event.name || ""}
+                onChange={(e) => updateEvent(idx, "name", e.target.value)}
+              />
+              <input
+                type="date"
+                className="input-minimal w-full mb-3 text-sm"
+                value={event.date || ""}
+                onChange={(e) => updateEvent(idx, "date", e.target.value)}
+              />
+              <input
+                className="input-minimal w-full text-sm"
+                placeholder="Time"
+                value={event.time || ""}
+                onChange={(e) => updateEvent(idx, "time", e.target.value)}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* RIGHT: LIVE PREVIEW */}
+        <div className="w-1/2 overflow-y-auto bg-white">
+          <TemplateRenderer 
+            templateComponent={templateComponent} 
+            schema={schema} 
+          />
+        </div>
       </div>
     </div>
   );
