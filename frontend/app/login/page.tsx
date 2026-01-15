@@ -130,6 +130,31 @@ function CustomGoogleButton({
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Fixed background images
+  const backgroundImages = [
+    'https://picsum.photos/1600/900?random=101',
+    'https://picsum.photos/1600/900?random=102',
+    'https://picsum.photos/1600/900?random=103',
+    'https://picsum.photos/1600/900?random=104',
+    'https://picsum.photos/1600/900?random=105',
+    'https://picsum.photos/1600/900?random=106',
+  ];
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const templateShowcases = [
+    { title: "Floral Romance", description: "Delicate florals with soft pastels" },
+    { title: "Modern Elegance", description: "Contemporary design with clean lines" },
+    { title: "Royal Heritage", description: "Regal patterns and traditional elements" },
+    { title: "Minimalist Chic", description: "Simple sophistication and timeless style" },
+    { title: "Garden Dreams", description: "Nature-inspired with botanical elements" },
+    { title: "Classic Luxury", description: "Timeless elegance and refined details" }
+  ];
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     setLoading(true);
@@ -156,86 +181,261 @@ export default function LoginPage() {
   return (
     <>
       <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Caveat:wght@400;600;700&display=swap"
         rel="stylesheet"
       />
       
-      <main className="h-screen overflow-hidden">
-        {/* Hero Section - Full Screen Background */}
-        <div className="relative w-full h-screen flex flex-col items-center justify-between overflow-hidden">
-          {/* Background with blur effect - Navratri celebration */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{
-              backgroundImage: "url('https://img.freepik.com/free-photo/celebration-navratri-deity_23-2151219992.jpg?w=1060')",
-              filter: "blur(50px)",
-              transform: "scale(1.15)",
-            }}
-          />
-          
-          {/* Overlay gradient - champagne gold tint with soft fade */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#BFA37C]/25 via-[#BFA37C]/15 to-[#363636]/10" />
-          
-          {/* Top Navigation - Overlaid on Image */}
-          <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 sm:px-6 md:px-8 py-3 sm:py-3.5">
-            <div className="font-serif text-lg sm:text-xl md:text-2xl font-medium text-white tracking-tight" style={{fontFamily: 'Playfair Display'}}>
-              ScrollVite
-            </div>
-            <div className="flex items-center gap-6 sm:gap-8">
-              <a href="#" className="text-white hover:text-[#D4AF37] transition-colors text-sm sm:text-base font-light cursor-pointer" style={{fontFamily: 'Playfair Display'}}>
-                Templates
-              </a>
-              <CustomGoogleButton
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                size="small"
-              />
-            </div>
+      <main className="h-screen overflow-hidden relative">
+        <style>{`
+          .indian-circle {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .indian-circle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            opacity: 0.4;
+          }
+
+          .indian-circle::after {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border: 1px dashed currentColor;
+            border-radius: 50%;
+            opacity: 0.3;
+          }
+
+          .indian-circle-inner {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: currentColor;
+            border-radius: 50%;
+            opacity: 0.6;
+          }
+
+          /* Petal decorations */
+          .indian-circle-petal {
+            position: absolute;
+            width: 4px;
+            height: 12px;
+            background: currentColor;
+            border-radius: 50%;
+            opacity: 0.4;
+            left: 50%;
+            top: -8px;
+            transform: translateX(-50%);
+          }
+
+          .indian-circle-petal:nth-child(1) { transform: translateX(-50%) rotate(0deg); }
+          .indian-circle-petal:nth-child(2) { transform: translateX(-50%) rotate(45deg); }
+          .indian-circle-petal:nth-child(3) { transform: translateX(-50%) rotate(90deg); }
+          .indian-circle-petal:nth-child(4) { transform: translateX(-50%) rotate(135deg); }
+          .indian-circle-petal:nth-child(5) { transform: translateX(-50%) rotate(180deg); }
+          .indian-circle-petal:nth-child(6) { transform: translateX(-50%) rotate(225deg); }
+          .indian-circle-petal:nth-child(7) { transform: translateX(-50%) rotate(270deg); }
+          .indian-circle-petal:nth-child(8) { transform: translateX(-50%) rotate(315deg); }
+
+          /* Template Box - Inclined with small dotted border */
+          .template-box {
+            position: relative;
+            border: 1px dotted rgba(255, 255, 255, 0.8);
+            padding: 1.5rem 1rem;
+            transform: rotate(-3deg) skewY(-2deg);
+            transition: all 0.3s ease;
+            overflow: visible;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(2px);
+          }
+
+          .template-box:hover {
+            border-color: rgba(255, 255, 255, 1);
+            background: rgba(0, 0, 0, 0.2);
+          }
+        `}</style>
+
+        {/* Background Image Container with Smooth Transition */}
+        <div 
+          suppressHydrationWarning
+          className="absolute inset-0 opacity-80 transition-all duration-1000 ease-in-out"
+          style={{
+            backgroundImage: mounted 
+              ? (hoveredIndex !== null && backgroundImages[hoveredIndex] 
+                ? `url('${backgroundImages[hoveredIndex]}')`
+                : `url('${backgroundImages[0] || ''}')`)
+              : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed',
+          }}
+        />
+
+        {/* Top Navigation - Overlaid on Background */}
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 sm:px-6 md:px-8 py-3 sm:py-3.5">
+          <div className="font-serif text-lg sm:text-xl md:text-2xl font-medium text-white tracking-tight" style={{fontFamily: 'Playfair Display'}}>
+            ScrollVite
           </div>
-          
-          {/* Main Content - Centered */}
-          <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-5xl px-4 sm:px-6 md:px-8 py-8 sm:py-12 md:py-16 text-center flex-1">
-            {/* Tagline */}
-            <p className="text-xs sm:text-sm tracking-[0.25em] text-[#BFA37C] mb-3 sm:mb-4 md:mb-5 font-light uppercase" style={{textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
-              Elegant Modern Classic Luxe
-            </p>
-            
-            {/* Main Title */}
-            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light leading-[1.15] mb-4 sm:mb-5 md:mb-6 text-white" style={{textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
-              Begin Your Forever,
-              <br />
-              Beautifully
-            </h1>
-            
-            {/* Description */}
-            <p className="text-sm sm:text-base md:text-lg text-[#BFA37C] max-w-2xl mb-6 sm:mb-8 md:mb-10 font-light leading-relaxed" style={{textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
-              A premium digital wedding invitation platform, high and champagne gold pair.
-            </p>
-            
-            {/* CTA Button */}
-            <div className="w-full sm:w-auto">
-              <CustomGoogleButton
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                size="large"
-                className="shadow-sm hover:shadow-md w-full sm:w-auto"
-              />
-            </div>
+          <div className="flex items-center gap-6 sm:gap-8">
+            <a href="#" className="text-white hover:text-[#D4AF37] transition-colors text-sm sm:text-base font-light cursor-pointer" style={{fontFamily: 'Playfair Display'}}>
+              Templates
+            </a>
+            <CustomGoogleButton
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              size="small"
+            />
+          </div>
+        </div>
+
+        {/* Main Showcase Content */}
+        <div className="relative z-10 w-full h-screen flex items-center justify-center px-4 sm:px-6 md:px-8">
+          {/* Center Large Template Name - Breaking on new lines */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+            {hoveredIndex === null ? (
+              // Default state - show big SCROLLVITE
+              <div className="relative w-full h-full flex items-center justify-center">
+                <h2 
+                  className="font-serif text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-white transition-opacity duration-500"
+                  style={{
+                    fontFamily: 'Caveat',
+                    textShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                    letterSpacing: '0.05em',
+                    textAlign: 'center',
+                    fontWeight: '700',
+                  }}
+                >
+                  SCROLLVITE
+                </h2>
+              </div>
+            ) : (
+              <div className="relative w-full h-full">
+                {/* Split template name across the screen */}
+                {templateShowcases[hoveredIndex].title.split(' ').length > 1 ? (
+                  // Multi-word titles - break them on separate lines
+                  <div className="absolute inset-0 flex flex-col items-center justify-center px-8 md:px-16">
+                    <p 
+                      className="text-sm sm:text-base md:text-lg text-white/70 mb-1 tracking-wider transition-opacity duration-500"
+                      style={{
+                        fontFamily: 'Playfair Display',
+                        textShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                        letterSpacing: '0.15em',
+                        fontWeight: '400',
+                      }}
+                    >
+                      SCROLLVITE
+                    </p>
+                    <h2 
+                      className="font-serif text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-white transition-opacity duration-500"
+                      style={{
+                        fontFamily: 'Caveat',
+                        textShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                        letterSpacing: '0.05em',
+                        lineHeight: '1',
+                        fontWeight: '700',
+                      }}
+                    >
+                      {templateShowcases[hoveredIndex].title.split(' ')[0].toUpperCase()}
+                    </h2>
+                    <h2 
+                      className="font-serif text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-white transition-opacity duration-500"
+                      style={{
+                        fontFamily: 'Caveat',
+                        textShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                        letterSpacing: '0.05em',
+                        marginLeft: '8rem',
+                        lineHeight: '1',
+                        fontWeight: '700',
+                      }}
+                    >
+                      {templateShowcases[hoveredIndex].title.split(' ')[1].toUpperCase()}
+                    </h2>
+                  </div>
+                ) : (
+                  // Single word - center it
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <h2 
+                      className="font-serif text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-white transition-opacity duration-500"
+                      style={{
+                        fontFamily: 'Caveat',
+                        textShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                        letterSpacing: '0.05em',
+                        textAlign: 'center',
+                        fontWeight: '700',
+                      }}
+                    >
+                      {templateShowcases[hoveredIndex].title.toUpperCase()}
+                    </h2>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Terms Text - At Bottom of Image */}
-          <div className="relative z-10 w-full pb-4 sm:pb-6 px-4">
-            <p className="text-xs sm:text-sm text-[#BFA37C] text-center leading-relaxed max-w-4xl mx-auto" style={{textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'}}>
-              By continuing, you agree to our{" "}
-              <span className="underline cursor-pointer hover:text-[#D4AF37] transition-colors">
-                Terms of Service
-              </span>{" "}
-              and{" "}
-              <span className="underline cursor-pointer hover:text-[#D4AF37] transition-colors">
-                Privacy Policy
-              </span>.
-            </p>
+          {/* Showcase Items - Positioned Around the Screen */}
+          <div className="w-full h-screen relative">
+            {templateShowcases.map((template, index) => {
+              // Position items in a circular arrangement
+              const angle = (index * 60) * (Math.PI / 180); // 60 degrees apart
+              const radius = 35; // percentage from center
+              const x = Math.cos(angle) * radius;
+              const y = Math.sin(angle) * radius;
+              
+              return (
+                <div
+                  key={index}
+                  suppressHydrationWarning
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  className="absolute cursor-pointer transition-all duration-500 group"
+                  style={{
+                    left: `calc(50% + ${x}vw)`,
+                    top: `calc(50% + ${y}vh)`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                >
+                  {/* Text Content with Inclined Box */}
+                  <div className={`template-box text-center transition-all duration-500 ${
+                    hoveredIndex === index ? 'opacity-100' : 'opacity-70'
+                  }`}>
+                    <h3 
+                      className="text-lg sm:text-xl text-white mb-2 transition-all duration-500"
+                      style={{
+                        fontFamily: 'Caveat, cursive',
+                        fontWeight: '600',
+                        fontSize: 'clamp(1.5rem, 5vw, 2.5rem)',
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      {template.title}
+                    </h3>
+                    <p 
+                      className="text-xs sm:text-sm text-white/90 font-light leading-relaxed overflow-visible"
+                      style={{
+                        fontFamily: 'Caveat, cursive',
+                        fontSize: 'clamp(0.875rem, 3vw, 1.125rem)',
+                      }}
+                    >
+                      {template.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+        </div>
+
+        {/* Bottom Text Hint */}
+        <div className="absolute bottom-8 left-0 right-0 z-20 text-center">
+          <p className="text-xs sm:text-sm text-white/70 font-light tracking-widest uppercase">
+            Hover to explore
+          </p>
         </div>
       </main>
     </>
