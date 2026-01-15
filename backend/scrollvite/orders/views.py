@@ -302,6 +302,7 @@ class MyTemplatesView(APIView):
                 "is_expired": invite.is_expired(),
                 "bride_name": invite.schema.get('hero', {}).get('bride_name', ''),
                 "groom_name": invite.schema.get('hero', {}).get('groom_name', ''),
+                "schema": invite.schema,
             })
 
         return Response(data)

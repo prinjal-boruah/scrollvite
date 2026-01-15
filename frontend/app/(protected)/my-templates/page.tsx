@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { fetchMyTemplates } from "@/lib/api";
+import { fetchMyTemplates, getHeroImage } from "@/lib/api";
 
 type PurchasedTemplate = {
   invite_id: string;
@@ -15,6 +15,7 @@ type PurchasedTemplate = {
   is_expired: boolean;
   bride_name: string;
   groom_name: string;
+  schema?: any;
 };
 
 export default function MyTemplatesPage() {
@@ -143,15 +144,23 @@ export default function MyTemplatesPage() {
                   {/* Template Preview Area */}
                   <div className="p-3 sm:p-4">
                     <div className="h-40 sm:h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center relative overflow-hidden">
-                      <div className="text-center px-4">
-                        <p className="font-serif text-base sm:text-lg text-gray-700 mb-0.5" style={{fontFamily: 'Playfair Display'}}>
-                          {template.bride_name || "Bride"}
-                        </p>
-                        <p className="text-xs text-gray-400">&</p>
-                        <p className="font-serif text-base sm:text-lg text-gray-700 mt-0.5" style={{fontFamily: 'Playfair Display'}}>
-                          {template.groom_name || "Groom"}
-                        </p>
-                      </div>
+                      {getHeroImage(template.schema) ? (
+                        <img
+                          src={getHeroImage(template.schema)!}
+                          alt={template.template_title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-center px-4">
+                          <p className="font-serif text-base sm:text-lg text-gray-700 mb-0.5" style={{fontFamily: 'Playfair Display'}}>
+                            {template.bride_name || "Bride"}
+                          </p>
+                          <p className="text-xs text-gray-400">&</p>
+                          <p className="font-serif text-base sm:text-lg text-gray-700 mt-0.5" style={{fontFamily: 'Playfair Display'}}>
+                            {template.groom_name || "Groom"}
+                          </p>
+                        </div>
+                      )}
                       
                       {/* Expired Badge */}
                       {template.is_expired && (

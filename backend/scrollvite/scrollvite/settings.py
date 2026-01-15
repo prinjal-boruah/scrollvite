@@ -168,3 +168,6 @@ ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@scrollvite.com')
 
 RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
+
+# Backend URL for generating full image URLs
+BACKEND_URL = os.environ.get('BACKEND_URL', 'http://127.0.0.1:8000')

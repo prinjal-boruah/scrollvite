@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { fetchTemplatesByCategory, getCurrentUser } from "@/lib/api";
+import { fetchTemplatesByCategory, getCurrentUser, getHeroImage } from "@/lib/api";
 
 type Template = {
   id: number;
   title: string;
   price: number;
   is_published: boolean;
+  schema?: any;
+  default_hero_image_url?: string;
 };
 
 type User = {
@@ -36,6 +38,7 @@ export default function TemplatesPage() {
 
     fetchTemplatesByCategory(categorySlug)
       .then((data) => {
+        console.log("Templates data:", data); // Debug log
         setTemplates(data);
         setLoading(false);
       })
@@ -148,8 +151,22 @@ export default function TemplatesPage() {
 
                 {/* Template Preview Area */}
                 <div className="p-3 sm:p-4">
-                  <div className="h-40 sm:h-48 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center text-gray-400 text-sm overflow-hidden group-hover:scale-105 transition-transform duration-300">
-                    Preview
+                  <div className="h-40 sm:h-48 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center text-gray-400 text-sm overflow-hidden relative group">
+                    {template.default_hero_image_url ? (
+                      <img
+                        src={template.default_hero_image_url}
+                        alt={template.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : getHeroImage(template.schema) ? (
+                      <img
+                        src={getHeroImage(template.schema)!}
+                        alt={template.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>Preview</span>
+                    )}
                   </div>
                 </div>
 

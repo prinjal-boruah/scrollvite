@@ -5,6 +5,15 @@ from django.conf import settings
 class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
+    
+    # Default image for category card
+    default_image = models.ImageField(
+        upload_to='categories/',
+        null=True,
+        blank=True,
+        help_text="Category card image shown to buyers"
+    )
+    
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -24,6 +33,14 @@ class Template(models.Model):
         max_length=100,
         default="RoyalWeddingTemplate",
         help_text="React component name for this template design"
+    )
+
+    # Default hero image for template preview
+    default_hero_image = models.ImageField(
+        upload_to='templates/',
+        null=True,
+        blank=True,
+        help_text="Default template preview image shown to buyers"
     )
 
     is_published = models.BooleanField(default=False)

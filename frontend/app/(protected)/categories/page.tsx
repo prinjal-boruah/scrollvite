@@ -8,6 +8,7 @@ type Category = {
   id: number;
   name: string;
   slug: string;
+  default_image_url?: string;
 };
 
 export default function CategoriesPage() {
@@ -123,7 +124,7 @@ export default function CategoriesPage() {
                 <div className="p-3 sm:p-4">
                   <div className="h-40 sm:h-48 bg-gray-200 rounded-2xl flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform duration-300">
                     <img 
-                      src={`https://picsum.photos/400/400?random=${category.id}`}
+                      src={category.default_image_url || `https://picsum.photos/400/400?random=${category.id}`}
                       alt={category.name}
                       className="w-full h-full object-cover"
                     />

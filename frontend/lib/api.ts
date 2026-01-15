@@ -29,6 +29,34 @@ export function getCurrentUser() {
 }
 
 /**
+ * Extract hero image from schema - finds first image URL in hero section
+ */
+export function getHeroImage(schema: any): string | null {
+  if (!schema?.hero) return null;
+  
+  const hero = schema.hero;
+  
+  // Check common image field names
+  const imageFields = ['couple_photo', 'photo', 'image', 'hero_image', 'background', 'picture'];
+  
+  for (const field of imageFields) {
+    if (hero[field] && typeof hero[field] === 'string' && hero[field].startsWith('http')) {
+      return hero[field];
+    }
+  }
+  
+  // If no common fields found, iterate through all properties to find a URL
+  for (const key in hero) {
+    if (typeof hero[key] === 'string' && hero[key].startsWith('http') && 
+        (hero[key].includes('/media/') || hero[key].includes('http'))) {
+      return hero[key];
+    }
+  }
+  
+  return null;
+}
+
+/**
  * API: Fetch categories
  */
 export async function fetchCategories() {
