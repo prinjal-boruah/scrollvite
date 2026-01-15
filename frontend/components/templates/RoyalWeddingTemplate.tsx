@@ -22,11 +22,16 @@ export default function RoyalWeddingTemplate({ schema }: RoyalWeddingTemplatePro
   };
 
   // Generate placeholder hero images
-  const heroImages = [
+  const defaultHeroImages = [
     'https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&h=800&fit=crop',
     'https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&h=800&fit=crop',
     'https://images.unsplash.com/photo-1465014888286-e1c285276ab9?w=1200&h=800&fit=crop',
   ];
+
+  // Use uploaded couple photo if available, otherwise use defaults
+  const heroImages = safeHero.couple_photo 
+    ? [safeHero.couple_photo, ...defaultHeroImages]
+    : defaultHeroImages;
 
   // Scroll effect handler
   useEffect(() => {
