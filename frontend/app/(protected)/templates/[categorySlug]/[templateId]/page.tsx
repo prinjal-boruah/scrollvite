@@ -137,7 +137,7 @@ export default function TemplatePreviewPage() {
 
   // Determine button text and state
   const getButtonText = () => {
-    if (alreadyOwned) return "✏️ Edit Your Invite";
+    if (alreadyOwned) return "Edit Your Invite";
     if (buying) return "Processing...";
     if (!razorpayLoaded) return "Loading...";
     return `Buy ₹${template.price || "..."}`;
@@ -147,28 +147,37 @@ export default function TemplatePreviewPage() {
 
   return (
     <main className="relative">
+      <style>{`
+        .gradient-button {
+          background: linear-gradient(135deg, #D4AF37 0%, #C49A2C 100%);
+        }
+        .gradient-button:hover {
+          box-shadow: 0 12px 24px rgba(212, 175, 55, 0.4);
+        }
+      `}</style>
+
       {/* ADMIN ACTION: Edit Template Blueprint */}
       {user?.role === "SUPER_ADMIN" && (
         <div className="fixed top-20 right-8 z-50">
           <button
             onClick={() => router.push(`/admin/templates/${templateId}`)}
-            className="bg-black text-white px-4 py-2 rounded shadow-lg hover:bg-gray-800 transition"
+            className="gradient-button text-[#2C2416] px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition text-sm"
           >
-            ⚙️ Edit Template
+            Edit Template
           </button>
         </div>
       )}
 
       {/* BUYER ACTION: Purchase or Edit */}
       {user?.role === "BUYER" && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
           <button
             onClick={handleBuyOrEdit}
             disabled={isButtonDisabled}
-            className={`px-8 py-4 rounded-full shadow-lg font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed transition ${
+            className={`px-8 py-4 rounded-full shadow-lg font-semibold transition text-base ${
               alreadyOwned 
-                ? "bg-green-600 hover:bg-green-700 text-white" 
-                : "bg-black hover:bg-gray-800 text-white"
+                ? "gradient-button text-[#2C2416] hover:shadow-xl disabled:opacity-50" 
+                : "gradient-button text-[#2C2416] hover:shadow-xl disabled:opacity-50"
             }`}
           >
             {getButtonText()}
