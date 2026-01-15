@@ -22,9 +22,15 @@ export default function InviteEditorPage() {
   const [expired, setExpired] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showToast, setShowToast] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem("access");
+  useEffect(() => {    if (expiresAt && showToast) {
+      const timer = setTimeout(() => setShowToast(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [expiresAt, showToast]);
+
+  useEffect(() => {    const token = localStorage.getItem("access");
     if (!token) {
       router.push("/login");
       return;
@@ -140,154 +146,226 @@ export default function InviteEditorPage() {
   };
 
   return (
-    <div className="h-screen flex">
-      <div className="fixed top-20 right-8 z-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F1ED] to-[#E8E3DE]">
+      <style>{`
+        .input-minimal {
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid #D4AF37;
+          padding: 12px 0;
+          font-size: 14px;
+          color: #2C2416;
+          transition: border-color 0.3s ease;
+          font-family: 'Playfair Display', serif;
+        }
+        .input-minimal:focus {
+          outline: none;
+          border-bottom-color: #8B4513;
+        }
+        .input-minimal::placeholder {
+          color: #A0907A;
+        }
+        .gradient-button {
+          background: linear-gradient(135deg, #D4AF37 0%, #C49A2C 100%);
+        }
+      `}</style>
+
+      {/* Sticky Header with View Button */}
+      <div className="fixed top-20 right-6 z-50">
         <button
           onClick={handleViewPublic}
-          className="bg-white border-2 border-gray-300 text-gray-800 px-4 py-2 rounded shadow-lg hover:shadow-xl hover:border-gray-400 transition-all"
+          className="gradient-button text-[#2C2416] px-5 py-2 rounded-full font-semibold hover:shadow-lg transition-all text-sm"
         >
-          👁️ View Public Page
+          View Public Page
         </button>
       </div>
 
-      {/* LEFT: EDITOR */}
-      <div className="w-1/2 p-6 overflow-y-auto border-r">
-        <h1 className="text-xl font-bold mb-2">Edit Your Invite</h1>
-        <p className="text-sm text-gray-500 mb-6">Template: {templateTitle}</p>
+      {/* Expiry Notice - Fixed on Left Editor */}
+      {expiresAt && showToast && (
+        <div className="fixed top-20 left-0 right-1/2 px-3 md:px-5 z-40 animate-fade-in">
+          <div className="bg-[#fffbeb] border-l-4 border-[#f59e0b] px-4 py-3 rounded-sm flex items-start gap-3 max-w-md">
+            <span className="text-[#f59e0b] text-xl flex-shrink-0">⚠</span>
+            <div className="flex-1">
+              <p className="font-semibold text-[#92400e] text-sm">Expiry Notice</p>
+              <p className="text-[#b45309] text-xs">This invite expires on {new Date(expiresAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
-        {expiresAt && (
-          <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
-            <div className="flex items-start">
-              <span className="text-yellow-600 text-xl mr-3">⚠️</span>
-              <div>
-                <p className="text-sm font-medium text-yellow-800">Expiry Notice</p>
-                <p className="text-sm text-yellow-700 mt-1">
-                  This invite expires on <strong>{new Date(expiresAt).toLocaleDateString('en-US', { 
-                    day: 'numeric', 
-                    month: 'long', 
-                    year: 'numeric' 
-                  })}</strong> (1 month after your wedding)
-                </p>
+      {/* Main Content */}
+      <div className="w-full h-screen flex flex-col px-3 md:px-5 py-3">
+        {/* Header */}
+        <div className="mb-2">
+          <h1 className="text-lg font-serif text-[#2C2416]" style={{ fontFamily: "'Playfair Display'" }}>Edit Template</h1>
+          <p className="text-xs text-[#8B4513]">{templateTitle}</p>
+        </div>
+
+        <style>{`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+          .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+          }
+        `}</style>
+
+        {/* Desktop: Side by Side | Mobile: Stacked */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 flex-1 overflow-hidden">
+          
+          {/* LEFT: EDITOR FORM */}
+          <div className="flex flex-col h-full overflow-hidden">
+            <div className="bg-white rounded-lg p-4 md:p-5 shadow-sm border border-[#D4AF37]/20 overflow-y-auto flex-1">
+              
+              {/* Hero Section */}
+              <h2 className="font-serif text-sm text-[#2C2416] mb-3 pb-2 border-b border-[#D4AF37]/30" style={{ fontFamily: "'Playfair Display'" }}>Hero</h2>
+
+              {/* Couple Photo Upload */}
+              <div className="mb-3">
+                <label className="block text-xs font-medium text-[#8B4513] mb-1 uppercase tracking-wide">Photo</label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload("couple_photo", e)}
+                    disabled={uploading}
+                    className="hidden"
+                    id="photo-upload"
+                  />
+                  <label
+                    htmlFor="photo-upload"
+                    className="block border-2 border-dashed border-[#D4AF37] rounded p-2 text-center cursor-pointer hover:border-[#8B4513] hover:bg-[#FFF8F0] transition-all"
+                  >
+                    <span className="text-lg mb-0.5 block">📸</span>
+                    <span className="text-xs text-[#8B4513]">{uploading ? "Uploading..." : "Upload"}</span>
+                  </label>
+                </div>
+                {schema.hero.couple_photo && (
+                  <div className="mt-2">
+                    <img 
+                      src={schema.hero.couple_photo} 
+                      alt="Couple" 
+                      className="h-16 w-16 object-cover rounded border border-[#D4AF37]/30"
+                    />
+                    <button
+                      onClick={() => updateHero("couple_photo", "")}
+                      className="text-xs text-red-600 mt-1 hover:underline font-medium"
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Names */}
+              <input
+                className="input-minimal w-full mb-2"
+                placeholder="Bride Name"
+                value={schema.hero.bride_name || ""}
+                onChange={(e) => updateHero("bride_name", e.target.value)}
+              />
+
+              <input
+                className="input-minimal w-full mb-2"
+                placeholder="Groom Name"
+                value={schema.hero.groom_name || ""}
+                onChange={(e) => updateHero("groom_name", e.target.value)}
+              />
+
+              <input
+                className="input-minimal w-full mb-2"
+                placeholder="Tagline"
+                value={schema.hero.tagline || ""}
+                onChange={(e) => updateHero("tagline", e.target.value)}
+              />
+
+              <div className="mb-3">
+                <label className="block text-xs font-medium text-[#8B4513] mb-0.5 uppercase tracking-wide">Date</label>
+                <input
+                  type="date"
+                  className="input-minimal w-full"
+                  value={schema.hero.wedding_date || ""}
+                  onChange={(e) => updateHero("wedding_date", e.target.value)}
+                />
+              </div>
+
+              {/* Venue Section */}
+              <h2 className="font-serif text-sm text-[#2C2416] mb-3 pb-2 border-b border-[#D4AF37]/30 mt-3" style={{ fontFamily: "'Playfair Display'" }}>Venue</h2>
+
+              <input
+                className="input-minimal w-full mb-2"
+                placeholder="Venue Name"
+                value={schema.venue.name || ""}
+                onChange={(e) => updateVenue("name", e.target.value)}
+              />
+
+              <input
+                className="input-minimal w-full mb-3"
+                placeholder="City"
+                value={schema.venue.city || ""}
+                onChange={(e) => updateVenue("city", e.target.value)}
+              />
+
+              {/* Events Section */}
+              <h2 className="font-serif text-sm text-[#2C2416] mb-3 pb-2 border-b border-[#D4AF37]/30 mt-3" style={{ fontFamily: "'Playfair Display'" }}>Events</h2>
+
+              {schema.events.map((event: any, idx: number) => (
+                <div key={idx} className="mb-3 p-3 bg-[#FFF8F0] rounded border border-[#D4AF37]/20 text-sm">
+                  <label className="block text-xs font-medium text-[#8B4513] mb-1 uppercase tracking-wide">Event {idx + 1}</label>
+                  <input
+                    className="input-minimal w-full mb-1.5"
+                    placeholder="Event Name"
+                    value={event.name || ""}
+                    onChange={(e) => updateEvent(idx, "name", e.target.value)}
+                  />
+                  <div className="mb-1.5">
+                    <label className="block text-xs font-medium text-[#8B4513] mb-0.5 uppercase tracking-wide">Date</label>
+                    <input
+                      type="date"
+                      className="input-minimal w-full text-xs"
+                      value={event.date || ""}
+                      onChange={(e) => updateEvent(idx, "date", e.target.value)}
+                    />
+                  </div>
+                  <input
+                    className="input-minimal w-full text-xs"
+                    placeholder="Time"
+                    value={event.time || ""}
+                    onChange={(e) => updateEvent(idx, "time", e.target.value)}
+                  />
+                </div>
+              ))}
+
+              {/* Save Button */}
+              <button
+                className="w-full gradient-button text-[#2C2416] px-4 py-2 mt-3 font-semibold rounded-full hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+
+          {/* RIGHT: LIVE PREVIEW */}
+          <div className="flex flex-col h-full overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm border border-[#D4AF37]/20 overflow-hidden flex-1 flex flex-col">
+              <div className="text-xs text-[#8B4513] font-medium px-3 py-2 border-b border-[#D4AF37]/20 bg-[#FFF8F0]">
+                Live Preview
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                <TemplateRenderer templateComponent={templateComponent} schema={schema} />
               </div>
             </div>
           </div>
-        )}
-
-        <h2 className="font-semibold mb-2">Hero Section</h2>
-
-        {/* Couple Photo Upload */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">
-            Couple Photo (Optional)
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleImageUpload("couple_photo", e)}
-            disabled={uploading}
-            className="border p-2 w-full mb-2 disabled:bg-gray-100"
-          />
-          {uploading && (
-            <p className="text-sm text-blue-600">Uploading...</p>
-          )}
-          {schema.hero.couple_photo && (
-            <div className="mt-2">
-              <img 
-                src={schema.hero.couple_photo} 
-                alt="Couple" 
-                className="h-32 w-32 object-cover rounded-lg border"
-              />
-              <button
-                onClick={() => updateHero("couple_photo", "")}
-                className="text-xs text-red-600 mt-1 hover:underline"
-              >
-                Remove photo
-              </button>
-            </div>
-          )}
         </div>
-
-        <input
-          className="border p-2 w-full mb-2"
-          placeholder="Bride Name"
-          value={schema.hero.bride_name || ""}
-          onChange={(e) => updateHero("bride_name", e.target.value)}
-        />
-
-        <input
-          className="border p-2 w-full mb-2"
-          placeholder="Groom Name"
-          value={schema.hero.groom_name || ""}
-          onChange={(e) => updateHero("groom_name", e.target.value)}
-        />
-
-        <input
-          className="border p-2 w-full mb-2"
-          placeholder="Subtitle"
-          value={schema.hero.subtitle || ""}
-          onChange={(e) => updateHero("subtitle", e.target.value)}
-        />
-
-        <input
-          type="date"
-          className="border p-2 w-full mb-6"
-          value={schema.hero.wedding_date || ""}
-          onChange={(e) => updateHero("wedding_date", e.target.value)}
-        />
-
-        <h2 className="font-semibold mb-2">Venue</h2>
-
-        <input
-          className="border p-2 w-full mb-2"
-          placeholder="Venue Name"
-          value={schema.venue.name || ""}
-          onChange={(e) => updateVenue("name", e.target.value)}
-        />
-
-        <input
-          className="border p-2 w-full mb-6"
-          placeholder="City"
-          value={schema.venue.city || ""}
-          onChange={(e) => updateVenue("city", e.target.value)}
-        />
-
-        <h2 className="font-semibold mb-4">Events</h2>
-
-        {schema.events.map((event: any, idx: number) => (
-          <div key={idx} className="border p-4 mb-4 rounded">
-            <input
-              className="border p-2 w-full mb-2"
-              placeholder="Event Name"
-              value={event.name || ""}
-              onChange={(e) => updateEvent(idx, "name", e.target.value)}
-            />
-            <input
-              type="date"
-              className="border p-2 w-full mb-2"
-              value={event.date || ""}
-              onChange={(e) => updateEvent(idx, "date", e.target.value)}
-            />
-            <input
-              className="border p-2 w-full"
-              placeholder="Time"
-              value={event.time || ""}
-              onChange={(e) => updateEvent(idx, "time", e.target.value)}
-            />
-          </div>
-        ))}
-
-        <button
-          className="bg-black text-white px-4 py-2 mt-4 disabled:bg-gray-400"
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? "Saving..." : "Save Changes"}
-        </button>
-      </div>
-
-      {/* RIGHT: LIVE PREVIEW */}
-      <div className="w-1/2 overflow-y-auto bg-gray-50">
-        <TemplateRenderer templateComponent={templateComponent} schema={schema} />
       </div>
     </div>
   );
