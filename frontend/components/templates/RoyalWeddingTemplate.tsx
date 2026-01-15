@@ -1,6 +1,8 @@
-// Example: Update RoyalWeddingTemplate.tsx to show uploaded couple photo
+// Luxury Wedding Invitation - Premium Minimal Design inspired by Kategora
 
 "use client";
+
+import { useState, useEffect } from "react";
 
 interface RoyalWeddingTemplateProps {
   schema: any;
@@ -8,6 +10,8 @@ interface RoyalWeddingTemplateProps {
 
 export default function RoyalWeddingTemplate({ schema }: RoyalWeddingTemplateProps) {
   const { hero, couple_story, venue, events, closing } = schema;
+  const [scrollY, setScrollY] = useState(0);
+  const [activeTab, setActiveTab] = useState(0);
 
   const safeHero = hero || {};
   const safeVenue = venue || {};
@@ -17,78 +21,119 @@ export default function RoyalWeddingTemplate({ schema }: RoyalWeddingTemplatePro
     signature: "With love" 
   };
 
+  // Generate placeholder hero images
+  const heroImages = [
+    'https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1465014888286-e1c285276ab9?w=1200&h=800&fit=crop',
+  ];
+
+  // Scroll effect handler
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <>
       <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lora:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Caveat:wght@600;700&display=swap"
         rel="stylesheet"
       />
       
-      <div className="min-h-screen bg-gradient-to-br from-[#FFF8F0] to-[#FFF5E6] text-[#2C2416]">
-        {/* Hero Section */}
-        <section className="min-h-screen flex flex-col justify-center items-center text-center px-6 py-16 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute inset-0" style={{
-              backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(139, 69, 19, 0.1) 0%, transparent 50%)'
-            }}></div>
+      <div className="bg-black text-white min-h-screen overflow-hidden">
+        
+        {/* Hero Section - Full Screen Image Carousel */}
+        <section className="h-screen relative overflow-hidden flex items-center justify-center">
+          {/* Background Images */}
+          <div className="absolute inset-0">
+            {heroImages.map((img, idx) => (
+              <div
+                key={idx}
+                className="absolute inset-0 transition-opacity duration-1000 ease-out"
+                style={{
+                  backgroundImage: `url('${img}')`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  opacity: activeTab === idx ? 1 : 0,
+                }}
+              />
+            ))}
+            {/* Dark overlay */}
+            <div className="absolute inset-0 bg-black/40"></div>
           </div>
 
-          <div className="relative z-10 max-w-4xl animate-fade-in-up">
-            <div className="text-6xl text-[#D4AF37] mb-6 animate-sparkle">✦</div>
-            
-            <p className="text-sm uppercase tracking-widest text-[#8B4513] mb-8 font-medium">
-              {safeHero.greeting || "You are invited to the wedding of"}
+          {/* Content */}
+          <div className="relative z-10 text-center max-w-4xl px-6 md:px-8">
+            <p className="text-white/60 tracking-[0.25em] uppercase text-xs md:text-sm mb-8 animate-fade-in-up">
+              {safeHero.greeting || "Together Forever"}
             </p>
-
-            {/* Couple Photo - NEW! */}
-            {safeHero.couple_photo && (
-              <div className="mb-8">
-                <img 
-                  src={safeHero.couple_photo} 
-                  alt="Couple" 
-                  className="w-48 h-48 object-cover rounded-full mx-auto border-4 border-[#D4AF37] shadow-2xl"
-                />
-              </div>
-            )}
-
-            <h1 className="font-serif text-5xl md:text-7xl font-bold text-[#2C2416] mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
+            
+            <h1 className="font-serif text-6xl md:text-8xl lg:text-9xl font-light tracking-tight mb-6 animate-fade-in-up-delay-1" style={{ fontFamily: "'Playfair Display'" }}>
               {safeHero.bride_name || "Bride"}
             </h1>
-            
-            <div className="text-5xl text-[#D4AF37] my-6 italic">&</div>
-            
-            <h1 className="font-serif text-5xl md:text-7xl font-bold text-[#2C2416] mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
+
+            <div className="flex items-center justify-center gap-8 md:gap-12 my-8 md:my-12">
+              <div className="w-12 md:w-16 h-px bg-gradient-to-r from-transparent to-white/40"></div>
+              <p className="text-2xl md:text-3xl font-light tracking-widest">&</p>
+              <div className="w-12 md:w-16 h-px bg-gradient-to-l from-transparent to-white/40"></div>
+            </div>
+
+            <h1 className="font-serif text-6xl md:text-8xl lg:text-9xl font-light tracking-tight mb-12 animate-fade-in-up-delay-2" style={{ fontFamily: "'Playfair Display'" }}>
               {safeHero.groom_name || "Groom"}
             </h1>
 
-            <p className="text-xl italic text-[#8B4513] mt-8 mb-6">
-              {safeHero.tagline || "Two hearts, one soul"}
+            <p className="text-xl md:text-2xl text-white/70 mb-12 font-light" style={{ fontFamily: "'Caveat'" }}>
+              {safeHero.tagline || "Begin a beautiful journey together"}
             </p>
 
-            <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto my-12"></div>
-
-            <p className="text-2xl font-semibold tracking-wider">
-              {safeHero.wedding_date ? new Date(safeHero.wedding_date).toLocaleDateString('en-US', { 
-                day: 'numeric', 
+            <p className="text-lg md:text-2xl tracking-widest uppercase font-light animate-fade-in-up-delay-3">
+              {new Date(safeHero.wedding_date).toLocaleDateString('en-US', { 
                 month: 'long', 
+                day: 'numeric', 
                 year: 'numeric' 
-              }) : "Date TBD"}
+              })}
             </p>
 
-            <div className="text-6xl text-[#D4AF37] mt-6 animate-sparkle">✦</div>
+            {/* Image carousel indicators */}
+            <div className="flex justify-center gap-3 mt-16">
+              {heroImages.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveTab(idx)}
+                  className={`w-2 h-2 rounded-full transition-all duration-500 ${
+                    activeTab === idx ? 'bg-white w-8' : 'bg-white/40'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Scroll indicator */}
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce z-20">
+            <div className="text-white/60 text-sm tracking-widest uppercase">Scroll</div>
           </div>
         </section>
 
         {/* Story Section */}
         {couple_story?.enabled && (
-          <section className="max-w-4xl mx-auto px-6 py-16">
-            <h2 className="font-serif text-4xl text-center mb-12 relative" style={{ fontFamily: "'Playfair Display', serif" }}>
-              {couple_story.title}
-              <span className="block w-16 h-1 bg-[#D4AF37] mx-auto mt-4"></span>
-            </h2>
-            
-            <div className="bg-white rounded-3xl p-8 md:p-12 shadow-xl">
-              <p className="text-lg leading-relaxed text-gray-700 text-center">
+          <section className="h-screen flex items-center justify-center px-6 md:px-16 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-30" style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&h=800&fit=crop')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}></div>
+            <div className="absolute inset-0 bg-black/60"></div>
+
+            <div className="relative z-10 max-w-3xl" style={{ transform: `translateY(${scrollY * 0.3}px)` }}>
+              <p className="text-white/40 tracking-[0.25em] uppercase text-xs md:text-sm mb-8">Our Story</p>
+              
+              <h2 className="font-serif text-5xl md:text-7xl font-light tracking-tight mb-12" style={{ fontFamily: "'Playfair Display'" }}>
+                {couple_story.title}
+              </h2>
+
+              <p className="text-lg md:text-xl text-white/80 leading-relaxed font-light max-w-2xl">
                 {couple_story.content}
               </p>
             </div>
@@ -96,101 +141,172 @@ export default function RoyalWeddingTemplate({ schema }: RoyalWeddingTemplatePro
         )}
 
         {/* Events Section */}
-        <section className="max-w-4xl mx-auto px-6 py-16">
-          <h2 className="font-serif text-4xl text-center mb-12 relative" style={{ fontFamily: "'Playfair Display', serif" }}>
-            Wedding Events
-            <span className="block w-16 h-1 bg-[#D4AF37] mx-auto mt-4"></span>
-          </h2>
+        <section className="min-h-screen py-20 md:py-32 px-6 md:px-16">
+          <div className="max-w-6xl mx-auto">
+            <p className="text-white/40 tracking-[0.25em] uppercase text-xs md:text-sm mb-8">Events</p>
+            
+            <h2 className="font-serif text-5xl md:text-7xl font-light tracking-tight mb-20" style={{ fontFamily: "'Playfair Display'" }}>
+              Wedding Celebrations
+            </h2>
 
-          <div className="space-y-6">
-            {safeEvents.map((event: any, idx: number) => (
-              <div
-                key={idx}
-                className="bg-white rounded-2xl p-6 md:p-8 shadow-lg border-l-4 border-[#D4AF37] hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
-              >
-                <h3 className="font-serif text-2xl md:text-3xl text-[#2C2416] mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-                  {event.name}
-                </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20">
+              {safeEvents.map((event: any, idx: number) => (
+                <div
+                  key={idx}
+                  className="group cursor-pointer relative"
+                  style={{
+                    animation: `fadeInUp 1s ease-out ${idx * 0.2}s both`
+                  }}
+                >
+                  {/* Event Image Background */}
+                  <div className="absolute inset-0 h-64 md:h-80 opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden">
+                    <div
+                      className="w-full h-full bg-cover bg-center"
+                      style={{
+                        backgroundImage: `url('https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=600&h=400&fit=crop')`,
+                        transform: 'scale(1.05)',
+                        transition: 'transform 0.5s ease-out'
+                      }}
+                    ></div>
+                    <div className="absolute inset-0 bg-black/40"></div>
+                  </div>
 
-                <div className="space-y-2 text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#D4AF37] font-bold">📅</span>
-                    <span>{new Date(event.date).toLocaleDateString('en-US', { 
-                      day: 'numeric', 
-                      month: 'long', 
-                      year: 'numeric' 
-                    })}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#D4AF37] font-bold">🕐</span>
-                    <span>{event.time}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#D4AF37] font-bold">📍</span>
-                    <span>{event.venue}</span>
-                  </div>
-                  {event.dress_code && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-[#D4AF37] font-bold">👗</span>
-                      <span>{event.dress_code}</span>
+                  {/* Content */}
+                  <div className="relative z-10 pb-12 border-b border-white/10 group-hover:border-white/30 transition-colors duration-300">
+                    <h3 className="font-serif text-3xl md:text-4xl font-light tracking-tight mb-6 group-hover:text-white/80 transition-colors" style={{ fontFamily: "'Playfair Display'" }}>
+                      {event.name}
+                    </h3>
+
+                    <div className="space-y-4 text-white/60 text-sm md:text-base">
+                      <div className="flex items-baseline gap-4">
+                        <span className="w-16 tracking-widest uppercase font-light text-white/40">Date</span>
+                        <span className="font-light">
+                          {new Date(event.date).toLocaleDateString('en-US', { 
+                            month: 'long', 
+                            day: 'numeric', 
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-baseline gap-4">
+                        <span className="w-16 tracking-widest uppercase font-light text-white/40">Time</span>
+                        <span className="font-light">{event.time}</span>
+                      </div>
+
+                      <div className="flex items-baseline gap-4">
+                        <span className="w-16 tracking-widest uppercase font-light text-white/40">Venue</span>
+                        <span className="font-light">{event.venue}</span>
+                      </div>
+
+                      {event.dress_code && (
+                        <div className="flex items-baseline gap-4">
+                          <span className="w-16 tracking-widest uppercase font-light text-white/40">Dress</span>
+                          <span className="font-light">{event.dress_code}</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                {event.description && (
-                  <p className="mt-4 pt-4 border-t border-gray-200 italic text-gray-500">
-                    {event.description}
-                  </p>
-                )}
-              </div>
-            ))}
+                    {event.description && (
+                      <p className="mt-6 text-white/50 italic font-light">
+                        {event.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Venue Section */}
-        <section className="bg-gradient-to-br from-[#8B4513] to-[#D4AF37] text-white py-20 px-6 my-16">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="font-serif text-4xl mb-8" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Venue
+        <section className="h-screen relative overflow-hidden flex items-end justify-start">
+          {/* Background Image */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1400&h=800&fit=crop')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          ></div>
+
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+
+          {/* Content */}
+          <div className="relative z-10 w-full p-8 md:p-16 pb-24">
+            <p className="text-white/40 tracking-[0.25em] uppercase text-xs md:text-sm mb-8">The Venue</p>
+            
+            <h2 className="font-serif text-6xl md:text-7xl font-light tracking-tight mb-6" style={{ fontFamily: "'Playfair Display'" }}>
+              {safeVenue.name || "Venue TBD"}
             </h2>
-            
-            <p className="text-3xl font-semibold mb-4">{safeVenue.name || "Venue TBD"}</p>
-            <p className="text-xl opacity-90 mb-8">{safeVenue.address || safeVenue.city || ""}</p>
-            
+
+            <p className="text-white/70 text-lg md:text-xl max-w-xl font-light mb-12">
+              {safeVenue.address || safeVenue.city || "Location"}
+            </p>
+
             {safeVenue.google_maps_link && (
               <a
                 href={safeVenue.google_maps_link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block bg-white text-[#8B4513] px-8 py-3 rounded-full font-semibold hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                className="inline-block tracking-widest uppercase text-sm font-light border border-white/40 px-8 py-4 hover:border-white hover:bg-white/5 transition-all duration-300"
               >
-                View on Map
+                View Location
               </a>
             )}
           </div>
         </section>
 
         {/* Closing Section */}
-        <section className="max-w-4xl mx-auto px-6 py-16">
-          <div className="bg-white rounded-3xl p-8 md:p-12 shadow-xl text-center">
-            <div className="text-4xl text-[#D4AF37] mb-6">✦</div>
+        <section className="h-screen flex items-center justify-center relative overflow-hidden">
+          {/* Background pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0" style={{
+              backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 100px, rgba(255,255,255,.03) 100px, rgba(255,255,255,.03) 200px)',
+            }}></div>
+          </div>
+
+          <div className="relative z-10 text-center max-w-2xl px-6 md:px-8">
+            <p className="text-white/40 tracking-[0.25em] uppercase text-xs md:text-sm mb-12">The Celebration</p>
             
-            <p className="text-xl md:text-2xl text-[#2C2416] mb-6">
+            <h2 className="font-serif text-5xl md:text-7xl font-light tracking-tight mb-12" style={{ fontFamily: "'Playfair Display'" }}>
               {safeClosing.message}
-            </p>
-            
-            <p className="font-serif text-xl md:text-2xl italic text-[#8B4513] whitespace-pre-line" style={{ fontFamily: "'Playfair Display', serif" }}>
+            </h2>
+
+            <p className="text-white/60 font-light" style={{ fontFamily: "'Caveat'", fontSize: '2.5rem' }}>
               {safeClosing.signature}
             </p>
-            
-            <div className="text-4xl text-[#D4AF37] mt-6">✦</div>
+
+            <div className="mt-16 space-y-4">
+              <p className="text-white/40 text-sm tracking-widest uppercase">With gratitude</p>
+              <div className="w-12 h-px bg-white/20 mx-auto"></div>
+            </div>
           </div>
         </section>
 
-        <div className="h-16"></div>
+        {/* Footer */}
+        <footer className="border-t border-white/10 py-12 px-8 md:px-16">
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <p className="text-white/40 text-sm font-light">© {new Date().getFullYear()} {safeHero.bride_name} & {safeHero.groom_name}</p>
+            <p className="text-white/40 text-sm font-light">Crafted with ScrollVite</p>
+          </div>
+        </footer>
       </div>
 
       <style dangerouslySetInnerHTML={{__html: `
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(40px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         @keyframes fade-in-up {
           from {
             opacity: 0;
@@ -202,23 +318,29 @@ export default function RoyalWeddingTemplate({ schema }: RoyalWeddingTemplatePro
           }
         }
 
-        @keyframes sparkle {
-          0%, 100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.8;
-            transform: scale(1.1);
-          }
-        }
-
         .animate-fade-in-up {
-          animation: fade-in-up 1.2s ease-out;
+          animation: fade-in-up 1s ease-out;
         }
 
-        .animate-sparkle {
-          animation: sparkle 2s ease-in-out infinite;
+        .animate-fade-in-up-delay-1 {
+          animation: fade-in-up 1s ease-out 0.2s both;
+        }
+
+        .animate-fade-in-up-delay-2 {
+          animation: fade-in-up 1s ease-out 0.4s both;
+        }
+
+        .animate-fade-in-up-delay-3 {
+          animation: fade-in-up 1s ease-out 0.6s both;
+        }
+
+        .animate-bounce {
+          animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(10px); }
         }
       `}} />
     </>
