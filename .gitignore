@@ -1,4 +1,4 @@
-# Python
+# ===================== Python =====================
 __pycache__/
 *.py[cod]
 *$py.class
@@ -7,43 +7,180 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+*.pyc
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Django
+# ===================== Django =====================
 *.log
 *.pot
-*.pyc
 db.sqlite3
 db.sqlite3-journal
-/media
-/staticfiles
 
-# Virtual Environment
+# Media files (user uploads)
+backend/scrollvite/media/
+media/
+
+# Static files
+backend/scrollvite/staticfiles/
+staticfiles/
+
+# Logs directory
+backend/scrollvite/logs/
+logs/
+
+# ===================== Virtual Environment =====================
 venv/
 env/
 ENV/
 .venv
+backend/venv/
+backend/env/
 
-# Environment variables
+# ===================== Environment Variables =====================
 .env
 .env.local
 .env*.local
+backend/scrollvite/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.production.local
+frontend/.env.development.local
 
-# Next.js
-/frontend/node_modules/
-/frontend/.next/
-/frontend/out/
-/frontend/build/
+# ===================== Next.js =====================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel
 
-# IDE
-.DS_Store
+# Dependency directories
+node_modules/
+
+# ===================== Windows =====================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# ===================== IDE / Editors =====================
 .vscode/
 .idea/
 *.swp
 *.swo
+*.swn
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 
-# Uploaded images (anywhere in the project)
-*.jpg
-*.jpeg
-*.png
-*.webp
-*.gif
+# ===================== macOS =====================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ===================== Uploaded Images =====================
+# User uploaded images (in media folders)
+backend/scrollvite/media/**/*.jpg
+backend/scrollvite/media/**/*.jpeg
+backend/scrollvite/media/**/*.png
+backend/scrollvite/media/**/*.webp
+backend/scrollvite/media/**/*.gif
+
+# But keep placeholder/example images if any
+# !backend/scrollvite/media/placeholders/
+
+# ===================== Next.js Public Assets =====================
+# Keep public folder assets (these should be committed)
+!frontend/public/file.svg
+!frontend/public/globe.svg
+!frontend/public/next.svg
+!frontend/public/vercel.svg
+!frontend/public/window.svg
+!frontend/app/favicon.ico
+
+# ===================== Testing =====================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+*.cover
+.hypothesis/
+coverage.xml
+nosetests.xml
+
+# ===================== Distribution / Packaging =====================
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ===================== Backup files =====================
+*.bak
+*.backup
+*.old
+*.orig
+*~
+
+# ===================== Jupyter Notebook =====================
+.ipynb_checkpoints
+*.ipynb
+
+# ===================== pyenv =====================
+.python-version
+
+# ===================== Celery =====================
+celerybeat-schedule
+celerybeat.pid
+
+# ===================== SageMath =====================
+*.sage.py
+
+# ===================== Spyder =====================
+.spyderproject
+.spyproject
+
+# ===================== Rope =====================
+.ropeproject
+
+# ===================== mkdocs =====================
+/site
+
+# ===================== mypy =====================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ===================== Pyre =====================
+.pyre/
+
+# ===================== pytype =====================
+.pytype/
+
+# ===================== Cython =====================
+cython_debug/
