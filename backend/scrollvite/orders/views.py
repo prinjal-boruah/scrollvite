@@ -1,3 +1,6 @@
+# File: backend/scrollvite/orders/views.py
+# REPLACE ENTIRE FILE with this secure version
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -353,11 +356,19 @@ class VerifyPaymentView(APIView):
         return expires_at
 
     def _send_purchase_emails(self, order, invite):
-        """Send emails to buyer and admin"""
-        # Email to buyer
+        """Send beautiful HTML emails to buyer and admin"""
+        from django.core.mail import EmailMultiAlternatives
+        from .email_templates import get_purchase_email_html, get_admin_notification_email_html
+        
+        # Get user's name or email
+        user_name = order.user.username if order.user.username else order.user.email.split('@')[0]
+        
+        # === BUYER EMAIL ===
         buyer_subject = f"Your {order.template.title} is Ready! 🎉"
-        buyer_message = f"""
-Hi {order.user.username},
+        
+        # Text version (fallback for email clients that don't support HTML)
+        buyer_text = f"""
+Hi {user_name},
 
 Thank you for your purchase!
 
@@ -372,17 +383,24 @@ Best regards,
 ScrollVite Team
         """
         
-        send_mail(
-            buyer_subject,
-            buyer_message,
-            settings.DEFAULT_FROM_EMAIL,
-            [order.user.email],
-            fail_silently=True,
+        # HTML version (beautiful template)
+        buyer_html = get_purchase_email_html(order, invite, settings.FRONTEND_URL)
+        
+        # Send email with both versions
+        buyer_email = EmailMultiAlternatives(
+            subject=buyer_subject,
+            body=buyer_text,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[order.user.email]
         )
-
-        # Email to admin
-        admin_subject = f"New Purchase: {order.template.title}"
-        admin_message = f"""
+        buyer_email.attach_alternative(buyer_html, "text/html")
+        buyer_email.send(fail_silently=True)
+        
+        # === ADMIN EMAIL ===
+        admin_subject = f"🎉 New Purchase: {order.template.title}"
+        
+        # Text version
+        admin_text = f"""
 New purchase received!
 
 Customer: {order.user.email}
@@ -392,13 +410,18 @@ Order ID: {order.id}
 Date: {order.created_at}
         """
         
-        send_mail(
-            admin_subject,
-            admin_message,
-            settings.DEFAULT_FROM_EMAIL,
-            [settings.ADMIN_EMAIL],
-            fail_silently=True,
+        # HTML version
+        admin_html = get_admin_notification_email_html(order)
+        
+        # Send email
+        admin_email = EmailMultiAlternatives(
+            subject=admin_subject,
+            body=admin_text,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[settings.ADMIN_EMAIL]
         )
+        admin_email.attach_alternative(admin_html, "text/html")
+        admin_email.send(fail_silently=True)
 
 
 # Keep all other views (InviteInstanceDetailView, MyTemplatesView, etc.) as they are
