@@ -39,7 +39,7 @@ class TemplateAdmin(admin.ModelAdmin):
             'description': 'Upload a default hero image for template preview cards'
         }),
         ('Status', {
-            'fields': ('is_published', 'is_active')
+            'fields': ('is_published', 'is_active','is_preview')
         }),
     )
 

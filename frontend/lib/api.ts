@@ -1,6 +1,7 @@
 // Centralized API utilities
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 /**
  * Get auth headers with token
@@ -269,4 +270,45 @@ export async function uploadTemplateImage(templateId: string, file: File) {
   }
   
   return res.json();
+}
+
+/**
+ * Fetch preview templates for homepage (PUBLIC - no auth required)
+ * Returns max 5 templates where is_published=True AND is_preview=True
+ */
+export async function fetchPreviewTemplates() {
+  const response = await fetch(`${API_URL}/api/preview-templates/`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch preview templates");
+  }
+
+  return response.json();
+}
+
+/**
+ * Fetch single template for demo preview (PUBLIC - no auth required)
+ * Only works for templates with is_preview=True
+ */
+export async function fetchTemplatePreview(templateId: string | number) {
+  const response = await fetch(`${API_URL}/api/template-preview/${templateId}/`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error("Template not found or not available for preview");
+    }
+    throw new Error("Failed to fetch template preview");
+  }
+
+  return response.json();
 }

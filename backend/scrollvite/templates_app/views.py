@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 from .models import Category, Template
 from orders.models import InviteInstance
 from .serializers import CategorySerializer, TemplateSerializer
@@ -50,6 +51,7 @@ class TemplateDetailView(APIView):
         )
         return Response(TemplateSerializer(template).data)
 
+
 class TemplateEditorView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -61,7 +63,7 @@ class TemplateEditorView(APIView):
             "schema": template.schema,
             "is_published": template.is_published,
             "price": str(template.price),
-            "template_component": template.template_component,  # ← ADD THIS
+            "template_component": template.template_component,
         })
 
 
@@ -78,6 +80,7 @@ class TemplateSaveView(APIView):
 
         return Response({"status": "saved"})
 
+
 class TemplateByCategoryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -89,7 +92,66 @@ class TemplateByCategoryView(APIView):
         )
         serializer = TemplateSerializer(templates, many=True)
         return Response(serializer.data)
-    
+
+
+# ==================== NEW PUBLIC ENDPOINTS ====================
+
+class PreviewTemplatesView(APIView):
+    """
+    Public endpoint - Returns max 5 templates for homepage preview
+    No authentication required
+    """
+    permission_classes = []
+
+    def get(self, request):
+        templates = Template.objects.filter(
+            is_active=True,
+            is_published=True,
+            is_preview=True
+        ).order_by('-created_at')[:5]  # Max 5 templates, newest first
+        
+        serializer = TemplateSerializer(templates, many=True)
+        return Response(serializer.data)
+
+
+class TemplatePreviewDetailView(APIView):
+    """
+    Public endpoint - Returns single template for demo preview
+    No authentication required
+    Only accessible if template has is_preview=True
+    """
+    permission_classes = []
+
+    def get(self, request, template_id):
+        template = get_object_or_404(
+            Template,
+            id=template_id,
+            is_active=True,
+            is_published=True,
+            is_preview=True
+        )
+        
+        # Build response with necessary fields
+        response_data = {
+            "id": template.id,
+            "title": template.title,
+            "schema": template.schema,
+            "template_component": template.template_component,
+            "price": str(template.price),
+        }
+        
+        # Add default_hero_image URL if exists
+        if template.default_hero_image:
+            response_data["default_hero_image_url"] = request.build_absolute_uri(
+                template.default_hero_image.url
+            )
+        else:
+            response_data["default_hero_image_url"] = None
+        
+        return Response(response_data)
+
+
+# ==================== EXISTING ENDPOINTS ====================
 
 class CreateOrderView(APIView):
     permission_classes = [IsAuthenticated]
@@ -160,4 +222,4 @@ class InviteView(APIView):
             "schema": invite.schema,
             "template_component": invite.template.template_component,
         })
-
+    

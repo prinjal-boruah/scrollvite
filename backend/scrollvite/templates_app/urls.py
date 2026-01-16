@@ -1,23 +1,31 @@
 from django.urls import path
 from .views import (
-    CategoryListView, 
-    TemplateSaveView,
-    TemplateListView, 
-    TemplateDetailView, 
+    CategoryListView,
+    TemplateListView,
+    TemplateDetailView,
     TemplateEditorView,
-    TemplateByCategoryView, 
-    CreateOrderView, 
-    InviteView
+    TemplateSaveView,
+    TemplateByCategoryView,
+    CreateOrderView,
+    InviteView,
+    PreviewTemplatesView,
+    TemplatePreviewDetailView,
 )
-from orders.views import UploadTemplateImageView  # Import from orders
 
 urlpatterns = [
-    path("categories/", CategoryListView.as_view()),
-    path("templates/<slug:category_slug>/", TemplateListView.as_view()),
-    path("template/<int:template_id>/", TemplateDetailView.as_view()),
-    path("template-editor/<int:template_id>/", TemplateEditorView.as_view()),
-    path("template-save/<int:template_id>/", TemplateSaveView.as_view()),
-    path("template-upload-image/<int:template_id>/", UploadTemplateImageView.as_view()),  # ADD THIS
-    path("templates/<slug:category_slug>/", TemplateByCategoryView.as_view()),
-    path("invite/<slug:slug>/", InviteView.as_view()),
+    # Existing authenticated endpoints
+    path('categories/', CategoryListView.as_view()),
+    path('templates/<slug:category_slug>/', TemplateListView.as_view()),
+    path('template-detail/<int:template_id>/', TemplateDetailView.as_view()),
+    path('template-editor/<int:template_id>/', TemplateEditorView.as_view()),
+    path('template-save/<int:template_id>/', TemplateSaveView.as_view()),
+    path('templates-by-category/<slug:category_slug>/', TemplateByCategoryView.as_view()),
+    path('create-order/<int:template_id>/', CreateOrderView.as_view()),
+    
+    # Public endpoints
+    path('invite/<slug:slug>/', InviteView.as_view()),
+    
+    # NEW: Public preview endpoints (no auth required)
+    path('preview-templates/', PreviewTemplatesView.as_view()),
+    path('template-preview/<int:template_id>/', TemplatePreviewDetailView.as_view()),
 ]

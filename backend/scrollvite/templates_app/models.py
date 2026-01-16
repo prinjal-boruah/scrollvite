@@ -45,6 +45,11 @@ class Template(models.Model):
 
     is_published = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    
+    is_preview = models.BooleanField(
+        default=False,
+        help_text="Show in homepage preview (max 5 templates recommended)"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 

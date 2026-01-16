@@ -1,3 +1,5 @@
+// File: frontend/app/login/page.tsx
+
 "use client";
 
 import { GoogleLogin } from "@react-oauth/google";
@@ -283,9 +285,13 @@ export default function LoginPage() {
             ScrollVite
           </div>
           <div className="flex items-center gap-6 sm:gap-8">
-            <a href="#" className="text-white hover:text-[#D4AF37] transition-colors text-sm sm:text-base font-light cursor-pointer" style={{fontFamily: 'Playfair Display'}}>
-              Templates
-            </a>
+            <button
+              onClick={() => router.push("/preview-templates")}
+              className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/30 hover:border-white/50 transition-all rounded-full shadow-sm"
+              style={{fontFamily: 'Playfair Display'}}
+            >
+              <span className="whitespace-nowrap text-black">Templates</span>
+            </button>
             <CustomGoogleButton
               onSuccess={handleGoogleSuccess}
               onError={handleGoogleError}
