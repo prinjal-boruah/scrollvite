@@ -171,3 +171,70 @@ RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
 
 # Backend URL for generating full image URLs
 BACKEND_URL = os.environ.get('BACKEND_URL', 'http://127.0.0.1:8000')
+# ===================== PAYMENT SECURITY SETTINGS =====================
+
+# Frontend URL for email links
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+# Admin email already defined in your file - good!
+# ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@scrollvite.com')
+
+# ===================== LOGGING CONFIGURATION =====================
+# Add this for payment tracking and debugging
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'payment.log'),
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'orders': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# ===================== PRODUCTION CHECKLIST =====================
+# TODO before deploying:
+# 1. Change SECRET_KEY to: config('SECRET_KEY')
+# 2. Change DEBUG to: config('DEBUG', default=False, cast=bool)
+# 3. Set ALLOWED_HOSTS = [config('ALLOWED_HOSTS', default='localhost')]
+# 4. Change CORS_ALLOW_ALL_ORIGINS = False
+# 5. Add CORS_ALLOWED_ORIGINS = [config('FRONTEND_URL')]
+# 6. Switch to PostgreSQL database
+# 7. Set up S3/Cloudflare R2 for media files
+
+# ===================== OPTIONAL: DATABASE SETTINGS FOR PRODUCTION =====================
+# Uncomment and configure when deploying to production with PostgreSQL
+
+# if not DEBUG:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.postgresql',
+#             'NAME': config('DB_NAME'),
+#             'USER': config('DB_USER'),
+#             'PASSWORD': config('DB_PASSWORD'),
+#             'HOST': config('DB_HOST'),
+#             'PORT': config('DB_PORT', default='5432'),
+#             'ATOMIC_REQUESTS': True,  # Important for payment transaction safety
+#         }
+#     }
