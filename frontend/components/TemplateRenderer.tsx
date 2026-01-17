@@ -1,6 +1,7 @@
 "use client";
 
 import RoyalWeddingTemplate from "./templates/RoyalWeddingTemplate";
+import PhotoStoryTemplate from "./templates/PhotoStoryTemplate";
 
 interface TemplateRendererProps {
   templateComponent: string;
@@ -20,6 +21,9 @@ export default function TemplateRenderer({
   switch (templateComponent) {
     case "RoyalWeddingTemplate":
       return <RoyalWeddingTemplate schema={schema} />;
+    
+    case "PhotoStoryTemplate":
+      return <PhotoStoryTemplate schema={schema} />;
     
     // Add more templates here as you create them:
     // case "MinimalistTemplate":
